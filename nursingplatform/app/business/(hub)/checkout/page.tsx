@@ -50,18 +50,18 @@ function CheckoutContent() {
       {/* Left: Transaction Details */}
       <div className="space-y-8">
         <header className="space-y-4">
-            <button className="p-0 h-auto text-slate-400 hover:text-pink-600 font-bold text-xs gap-2 flex items-center transition-colors" onClick={() => router.back()}>
+            <button className="p-0 h-auto text-slate-400 hover:text-blue-600 font-bold text-xs gap-2 flex items-center transition-colors" onClick={() => router.back()}>
                 <ChevronLeft size={14} /> Back to Plans
             </button>
             <h2 className="text-4xl font-bold text-slate-900 tracking-tight">Checkout</h2>
             <p className="text-slate-500 font-medium text-sm">Securely finalize your subscription plan</p>
         </header>
 
-        <Card className="border-none shadow-2xl shadow-pink-50 bg-slate-900 rounded-[3rem] p-8 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+        <Card className="border-none shadow-2xl shadow-blue-50 bg-slate-900 rounded-[3rem] p-8 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
             <div className="relative z-10 space-y-8">
                 <div className="flex justify-between items-center">
-                    <Badge variant="outline" className="border-white/20 text-pink-400 font-black text-[9px] uppercase tracking-widest bg-white/5">Order Summary</Badge>
+                    <Badge variant="outline" className="border-white/20 text-blue-400 font-black text-[9px] uppercase tracking-widest bg-white/5">Order Summary</Badge>
                     <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white"><Info size={18} /></div>
                 </div>
                 
@@ -94,7 +94,7 @@ function CheckoutContent() {
       </div>
 
       {/* Right: Payment Input */}
-      <Card className="border-none shadow-2xl shadow-pink-100/50 bg-white rounded-[4rem] p-12 relative overflow-hidden">
+      <Card className="border-none shadow-2xl shadow-blue-100/50 bg-white rounded-[4rem] p-12 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-48 h-48 bg-slate-50 rounded-full blur-[80px] -mr-24 -mt-24 pointer-events-none opacity-50"></div>
         <CardHeader className="px-0 pt-0 mb-8 relative z-10">
             <div className="flex items-center gap-4 mb-2">
@@ -137,7 +137,7 @@ function CheckoutContent() {
             <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-20 mt-4 bg-slate-900 hover:bg-pink-600 text-white rounded-[2rem] font-bold text-lg shadow-2xl transition-all active:scale-[0.98]"
+                className="w-full h-20 mt-4 bg-slate-900 hover:bg-blue-600 text-white rounded-[2rem] font-bold text-lg shadow-2xl transition-all active:scale-[0.98]"
             >
                 {loading ? (
                     <div className="flex items-center gap-3">
@@ -163,7 +163,7 @@ export default function CheckoutPage() {
       <Suspense fallback={
         <Card className="max-w-xl w-full h-96 bg-white rounded-[3rem] shadow-2xl flex items-center justify-center">
             <div className="flex flex-col items-center gap-6">
-                <Loader2 className="animate-spin text-pink-600" size={48} />
+                <Loader2 className="animate-spin text-blue-600" size={48} />
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 italic">Loading secure checkout...</p>
             </div>
         </Card>

@@ -24,27 +24,22 @@ function LoginContent() {
   const { data: session, status: sessionStatus } = useSession();
 
   useEffect(() => {
-    const isBusiness = portal === 'business';
-    const tokenKey = isBusiness ? 'business_token' : 'token';
-    const userKey = isBusiness ? 'business_user' : 'user';
-    const googleIdKey = isBusiness ? 'business_x_google_user_id' : 'x-google-user-id';
-
-    const token = localStorage.getItem(tokenKey);
-    
     const syncUser = async () => {
       if (sessionStatus === 'authenticated' && session?.user) {
         const sessionRole = (session.user as any).role;
-        if (isBusiness && sessionRole !== 'BUSINESS') return;
-        if (!isBusiness && sessionRole === 'BUSINESS') return;
+        if (sessionRole === 'BUSINESS') {
+            router.push('/business/login');
+            return;
+        }
         const userId = (session.user as any).id;
         if (userId) {
-          localStorage.setItem(googleIdKey, userId);
-          const localUser = localStorage.getItem(userKey);
+          localStorage.setItem('x-google-user-id', userId);
+          const localUser = localStorage.getItem('user');
           if (!localUser || JSON.parse(localUser).id !== userId) {
             try {
               const res = await api.get('/profile');
               const userData = { ...res.data.user, id: userId, role: (session.user as any).role || res.data.user.role, status: (session.user as any).status || res.data.user.status };
-              localStorage.setItem(userKey, JSON.stringify(userData));
+              localStorage.setItem('user', JSON.stringify(userData));
               setIsAlreadyLoggedIn(true);
             } catch (e) { console.error("Failed to sync user data in Login page", e); }
           }
@@ -52,38 +47,36 @@ function LoginContent() {
       }
     };
 
+    const token = localStorage.getItem('token');
+    
     if (token) {
       setIsAlreadyLoggedIn(true);
     } else if (sessionStatus === 'authenticated') {
       const sessionRole = (session?.user as any)?.role;
-      if (portal) {
-        const matchesRequest = (portal === 'business' && sessionRole === 'BUSINESS') || (portal !== 'business' && sessionRole !== 'BUSINESS');
-        if (matchesRequest) { setIsAlreadyLoggedIn(true); syncUser(); }
-        else setIsAlreadyLoggedIn(false);
+      if (sessionRole === 'BUSINESS') {
+          router.push('/business/login');
       } else {
-        setIsAlreadyLoggedIn(sessionRole !== 'BUSINESS');
-        if (sessionRole !== 'BUSINESS') syncUser();
+          setIsAlreadyLoggedIn(true);
+          syncUser();
       }
     } else setIsAlreadyLoggedIn(false);
 
     const authError = searchParams.get('error');
-    if (authError === 'AccessDenied' || authError === 'Configuration') router.push('/auth/pending');
+    if (authError === 'AccessDenied' || authError === 'Configuration') {
+      router.push('/auth/pending');
+    }
   }, [sessionStatus, session, router, portal, searchParams]);
 
   const handleSignOut = async () => {
-    if (portal === 'business') clearPortalData('business');
-    else clearPortalData('nurse');
+    clearPortalData('nurse');
     await signOut({ redirect: false });
     setIsAlreadyLoggedIn(false);
   };
 
   const handleGoogleSignIn = () => {
-    const isBusiness = portal === 'business';
-    clearPortalData(isBusiness ? 'business' : 'nurse');
-    const role = isBusiness ? 'BUSINESS' : 'NURSE';
-    document.cookie = `next_auth_role=${role}; path=/; max-age=300`;
-    const callback = isBusiness ? '/business/dashboard' : '/dashboard';
-    signIn('google', { callbackUrl: callback });
+    clearPortalData('nurse');
+    document.cookie = `next_auth_role=NURSE; path=/; max-age=300`;
+    signIn('google', { callbackUrl: '/dashboard' });
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -91,16 +84,24 @@ function LoginContent() {
     setLoading(true);
     setError('');
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', { email: email.trim(), password });
       const user = response.data.user;
-      const isBusiness = user.role === 'BUSINESS';
-      const tokenKey = isBusiness ? 'business_token' : 'token';
-      const userKey = isBusiness ? 'business_user' : 'user';
-      localStorage.setItem(tokenKey, response.data.access_token);
-      localStorage.setItem(userKey, JSON.stringify({ ...user, status: user.status || 'APPROVED' }));
-      if (user.role === 'BUSINESS') router.push('/business/dashboard');
-      else if (user.role === 'NURSE') router.push(user.isOnboarded ? '/dashboard' : '/onboarding');
-      else router.push('/dashboard');
+      
+      if (user.role === 'ADMIN') {
+          sessionStorage.setItem('admin_session', 'true');
+          sessionStorage.setItem('admin_token', response.data.access_token);
+          router.push('/admin/dashboard');
+          return;
+      }
+
+      if (user.role === 'BUSINESS') {
+          router.push('/business/login');
+          return;
+      }
+
+      localStorage.setItem('token', response.data.access_token);
+      localStorage.setItem('user', JSON.stringify({ ...user, status: user.status || 'APPROVED' }));
+      router.push(user.isOnboarded ? '/dashboard' : '/onboarding');
     } catch (err: any) {
       const msg = err.response?.data?.message || '';
       if (msg.toLowerCase().includes('pending')) router.push('/auth/pending');
@@ -108,13 +109,12 @@ function LoginContent() {
     } finally { setLoading(false); }
   };
 
-  const portalLabel = portal === 'business' ? 'Business Hub' : 'Nurse Portal';
-  const isBusiness = portal === 'business';
+  const portalLabel = 'Nurse Portal';
 
   return (
-    <div className="min-h-screen flex selection:bg-pink-100 selection:text-pink-900">
+    <div className="min-h-screen flex selection:bg-blue-100 selection:text-blue-900">
       {/* ── LEFT BRANDED PANEL ── */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-16 bg-[#ec4899]">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-16 bg-blue-600">
         <div className="relative">
           <Link href="/" className="flex items-center gap-3">
             <span className="text-white font-bold text-2xl tracking-tight">NurseFlex</span>
@@ -124,14 +124,10 @@ function LoginContent() {
         <div className="relative space-y-10">
           <div>
             <h1 className="text-5xl font-bold text-white leading-[1.1] tracking-tight max-w-lg">
-              {isBusiness
-                ? 'The top site for healthcare staffing.'
-                : 'Find your next nursing role.'}
+                Find your next nursing role.
             </h1>
             <p className="mt-6 text-white/80 text-lg font-medium leading-relaxed max-w-md">
-              {isBusiness
-                ? 'Join 500+ facilities that trust NurseFlex. Verified professionals, simple management.'
-                : 'Access exclusive nursing roles and work with premium facilities across the country.'}
+                Access exclusive nursing roles and work with premium facilities across the country.
             </p>
           </div>
 
@@ -143,7 +139,7 @@ function LoginContent() {
               { value: '98%', label: 'Match Rate' },
             ].map((s) => (
               <div key={s.label} className="group">
-                <div className="text-3xl font-bold text-white group-hover:text-pink-100 transition-colors">{s.value}</div>
+                <div className="text-3xl font-bold text-white group-hover:text-blue-100 transition-colors">{s.value}</div>
                 <div className="text-[10px] font-bold text-white/50 uppercase tracking-widest mt-1 group-hover:text-white/70 transition-colors">{s.label}</div>
               </div>
             ))}
@@ -159,12 +155,12 @@ function LoginContent() {
 
       {/* ── RIGHT LOGIN FORM ── */}
       <div className="flex-1 flex items-center justify-center p-8 bg-white relative">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500"></div>
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500"></div>
         
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <Link href="/" className="flex lg:hidden items-center gap-3 mb-10 justify-center">
-            <span className="text-[#ec4899] font-bold text-xl tracking-tight">NurseFlex</span>
+            <span className="text-blue-600 font-bold text-xl tracking-tight">NurseFlex</span>
           </Link>
 
           <Card className="border-none shadow-none bg-transparent">
@@ -187,15 +183,23 @@ function LoginContent() {
                   <Button
                     size="lg"
                     onClick={() => {
-                      const localUser = JSON.parse(localStorage.getItem('user') || '{}');
-                      const role = (session?.user as any)?.role || localUser.role || 'NURSE';
-                      if (role === 'BUSINESS') router.push('/business/dashboard');
-                      else {
-                        const isOnboarded = (session?.user as any)?.isOnboarded || localUser.isOnboarded;
-                        router.push(isOnboarded ? '/dashboard' : '/onboarding');
-                      }
+                        try {
+                            const localUser = JSON.parse(localStorage.getItem('user') || '{}');
+                            const sessionRole = (session?.user as any)?.role;
+                            const role = sessionRole || localUser.role || 'NURSE';
+
+                            if (role === 'BUSINESS') {
+                                window.location.href = '/business/login';
+                            } else {
+                                const isOnboarded = (session?.user as any)?.isOnboarded || localUser.isOnboarded;
+                                window.location.href = isOnboarded ? '/dashboard' : '/onboarding';
+                            }
+                        } catch (e) {
+                            console.error("Redirect Error:", e);
+                            setError("Unable to redirect. Please try again.");
+                        }
                     }}
-                    className="w-full py-6 text-base font-bold rounded-xl bg-[#ec4899] hover:bg-[#db2777] text-white shadow-none"
+                    className="w-full py-6 text-base font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-none"
                   >
                     Continue to portal
                   </Button>
@@ -217,7 +221,7 @@ function LoginContent() {
                       <Label htmlFor="email" className="text-xs font-bold text-slate-700">Email address</Label>
                       <Input
                         id="email" type="email" required
-                        className="h-12 border-slate-300 rounded-lg focus-visible:ring-[#ec4899] focus-visible:border-[#ec4899] transition-all font-medium"
+                        className="h-12 border-slate-300 rounded-lg focus-visible:ring-blue-600 focus-visible:border-blue-600 transition-all font-medium"
                         placeholder="email@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -227,39 +231,41 @@ function LoginContent() {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <Label htmlFor="password" className="text-xs font-bold text-slate-700">Password</Label>
-                        <Link href="/auth/forgot" className="text-xs font-bold text-[#ec4899] hover:underline">Forgot password?</Link>
+                        <Link href="/auth/forgot" className="text-xs font-bold text-blue-600 hover:underline">Forgot password?</Link>
                       </div>
                       <Input
                         id="password" type="password" required
-                        className="h-12 border-slate-300 rounded-lg focus-visible:ring-[#ec4899] focus-visible:border-[#ec4899] transition-all font-medium"
+                        className="h-12 border-slate-300 rounded-lg focus-visible:ring-blue-600 focus-visible:border-blue-600 transition-all font-medium"
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                       />
                     </div>
 
-                    <Button type="submit" size="lg" disabled={loading} className="w-full h-12 mt-2 bg-[#ec4899] hover:bg-[#db2777] text-white font-bold rounded-lg shadow-none">
+                    <Button type="submit" size="lg" disabled={loading} className="w-full h-12 mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-none">
                       {loading ? "Signing in..." : "Sign in"}
                     </Button>
                   </form>
 
-                  <div className="relative my-8">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-slate-200" />
-                    </div>
-                    <div className="relative flex justify-center">
-                      <span className="bg-white px-4 text-xs font-bold text-slate-400">or</span>
-                    </div>
-                  </div>
+                    <>
+                      <div className="relative my-8">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-slate-200" />
+                        </div>
+                        <div className="relative flex justify-center">
+                          <span className="bg-white px-4 text-xs font-bold text-slate-400">or</span>
+                        </div>
+                      </div>
 
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={handleGoogleSignIn}
-                    className="w-full h-12 border-slate-300 rounded-lg font-bold bg-white hover:bg-slate-50 text-slate-700 transition-all"
-                  >
-                    Continue with Google
-                  </Button>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={handleGoogleSignIn}
+                        className="w-full h-12 border-slate-300 rounded-lg font-bold bg-white hover:bg-slate-50 text-slate-700 transition-all"
+                      >
+                        Continue with Google
+                      </Button>
+                    </>
                 </>
               )}
             </CardContent>
@@ -267,7 +273,7 @@ function LoginContent() {
             <CardFooter className="p-0 mt-8 justify-center">
               <p className="text-sm font-medium text-slate-500">
                 New to NurseFlex?{' '}
-                <Link href="/auth/register" className="text-[#ec4899] font-bold hover:underline">
+                <Link href="/auth/register" className="text-blue-600 font-bold hover:underline">
                   Create an account
                 </Link>
               </p>
@@ -281,7 +287,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-pink-600" size={48} /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-blue-600" size={48} /></div>}>
       <LoginContent />
     </Suspense>
   );

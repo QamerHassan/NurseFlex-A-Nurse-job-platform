@@ -1,106 +1,58 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+"use client";
+import React, { useEffect } from 'react';
 import Link from 'next/link';
-import {
-    CheckCircle2, ArrowRight, Home, Briefcase,
-    ExternalLink, Loader2
-} from 'lucide-react';
-import Image from 'next/image';
-import api from '@/lib/api';
+import { CheckCircle2, Briefcase, Search } from 'lucide-react';
 
-export default function ApplySuccessPage() {
-    const { id } = useParams();
-    const router = useRouter();
-    const [job, setJob] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<any>(null);
-
+export default function ApplicationSuccess() {
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [jobsRes, userJson] = await Promise.all([
-                    api.get('/jobs'),
-                    Promise.resolve(localStorage.getItem('user'))
-                ]);
-                const foundJob = jobsRes.data.find((j: any) => j.id === id);
-                setJob(foundJob);
-                if (userJson) setUser(JSON.parse(userJson));
-            } catch (err) {
-                console.error("Failed to fetch data for success page");
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, [id]);
-
-    if (loading) return (
-        <div className="min-h-screen flex items-center justify-center bg-white">
-            <Loader2 className="animate-spin text-pink-600" size={40} />
-        </div>
-    );
+        ['uploadedResumeUrl', 'uploadedResumeName', 'uploadedResumeType',
+         'experienceFormData', 'applicationContactData'].forEach(k => localStorage.removeItem(k));
+    }, []);
 
     return (
-        <div className="min-h-screen bg-white font-sans flex flex-col pt-12">
-            <main className="flex-1 flex flex-col items-center bg-white pb-20 pt-12">
-                <div className="max-w-xl w-full px-6 flex flex-col items-center">
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans">
+            <div className="max-w-md w-full space-y-6 text-center">
 
-                    {/* Illustration */}
-                    <div className="w-full aspect-[4/3] relative mb-12">
-                        <Image
-                            src="/images/success-illustration.png"
-                            alt="Application Submitted"
-                            fill
-                            className="object-contain"
-                        />
-                    </div>
-
-                    <h1 className="text-4xl font-black text-slate-900 text-center tracking-tighter italic mb-10 leading-tight">
-                        Your application has been submitted!
-                    </h1>
-
-                    {/* Email Confirmation Card */}
-                    <div className="w-full bg-white border border-slate-100 rounded-3xl p-8 mb-12 shadow-sm flex items-start gap-4">
-                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0">
-                            <CheckCircle2 size={20} />
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-slate-600 font-bold leading-relaxed">
-                                You will get an email confirmation at <span className="text-slate-900 italic">{user?.email || 'qamerhassan6@gmail.com'}</span>
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Keep track section */}
-                    <div className="w-full space-y-4 mb-12">
-                        <h3 className="text-xl font-black text-slate-900 tracking-tighter italic">Keep track of your applications</h3>
-                        <p className="text-slate-500 font-bold italic">
-                            To keep track of your applications, go to <Link href="/saved-jobs" className="text-pink-600 hover:underline inline-flex items-center gap-1">MyJobs <ExternalLink size={14} /></Link>
-                        </p>
-                    </div>
-
-                    {/* Action Button */}
-                    <Link href="/dashboard" className="w-full">
-                        <button className="w-full py-6 bg-white border-2 border-slate-100 text-pink-600 font-black rounded-3xl text-xl hover:bg-slate-50 transition-all active:scale-95 uppercase tracking-tighter italic shadow-sm hover:shadow-md">
-                            Return to job search
-                        </button>
-                    </Link>
-
-                    <div className="text-center pt-20">
-                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">
-                            Having an issue with this application? <span className="text-pink-600 underline cursor-pointer">Tell us more</span>
-                        </p>
-                    </div>
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-green-500 rounded-3xl flex items-center justify-center mx-auto shadow-xl shadow-blue-100">
+                    <CheckCircle2 size={40} className="text-white" />
                 </div>
-            </main>
 
-            {/* FOOTER */}
-            <footer className="bg-white border-t border-slate-100 py-12 px-6">
-                <p className="text-center text-[10px] text-slate-300 font-bold uppercase tracking-[0.3em]">
-                    © 2026 NurseFlex • Cookies, Privacy and Terms
-                </p>
-            </footer>
+                <div className="space-y-2">
+                    <h1 className="text-2xl font-bold text-slate-900">Application Submitted!</h1>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                        Your profile has been shared with the employer. You'll receive an email if they want to move forward.
+                    </p>
+                </div>
+
+                <div className="bg-white border border-slate-100 rounded-2xl p-5 text-left shadow-sm space-y-3">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">What happens next</p>
+                    {[
+                        'The employer reviews your profile and resume.',
+                        "If interested, they'll contact you via NurseFlex or email.",
+                        'You can track your application status in your dashboard.',
+                    ].map((step, i) => (
+                        <div key={i} className="flex items-start gap-3">
+                            <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-green-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 mt-0.5">
+                                {i + 1}
+                            </div>
+                            <p className="text-sm text-slate-600">{step}</p>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="flex flex-col gap-3">
+                    <Link href="/dashboard"
+                        className="w-full h-11 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-md transition-all">
+                        <Briefcase size={16} /> View My Applications
+                    </Link>
+                    <Link href="/jobs"
+                        className="w-full h-11 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all">
+                        <Search size={16} /> Browse More Jobs
+                    </Link>
+                </div>
+
+                <p className="text-[10px] text-slate-300 uppercase tracking-widest">NurseFlex · Healthcare Recruitment</p>
+            </div>
         </div>
     );
 }

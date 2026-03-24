@@ -39,7 +39,7 @@ export default function AccountSettingsPage() {
                         <p className="text-sm font-bold text-slate-900 mb-1">Account type:</p>
                         <p className="text-slate-500 font-medium">Nurse / Caregiver</p>
                     </div>
-                    <button className="text-pink-600 font-bold border border-pink-600 px-4 py-2 rounded-xl text-sm hover:bg-pink-50 transition-all text-nowrap">
+                    <button className="text-blue-600 font-bold border border-blue-600 px-4 py-2 rounded-xl text-sm hover:bg-blue-50 transition-all text-nowrap">
                         Change account type
                     </button>
                 </div>
@@ -48,9 +48,9 @@ export default function AccountSettingsPage() {
                 <div className="flex items-center justify-between py-6 border-b border-slate-100">
                     <div>
                         <p className="text-sm font-bold text-slate-900 mb-1">Email</p>
-                        <p className="text-slate-500 font-medium">{userProfile?.user?.email || 'qamerhassan6@gmail.com'}</p>
+                        <p className="text-slate-500 font-medium">{userProfile?.user?.email || (loading ? 'Loading...' : '')}</p>
                     </div>
-                    <button className="text-pink-600 font-bold border border-pink-600 px-4 py-2 rounded-xl text-sm hover:bg-pink-50 transition-all text-nowrap">
+                    <button className="text-blue-600 font-bold border border-blue-600 px-4 py-2 rounded-xl text-sm hover:bg-blue-50 transition-all text-nowrap">
                         Change email
                     </button>
                 </div>
@@ -61,7 +61,7 @@ export default function AccountSettingsPage() {
                         <p className="text-sm font-bold text-slate-900 mb-1">Phone number</p>
                         <p className="text-slate-500 font-medium">{userProfile?.phoneNumber || '+92 324 5963808'}</p>
                     </div>
-                    <button className="text-pink-600 font-bold border border-pink-600 px-4 py-2 rounded-xl text-sm hover:bg-pink-50 transition-all text-nowrap">
+                    <button className="text-blue-600 font-bold border border-blue-600 px-4 py-2 rounded-xl text-sm hover:bg-blue-50 transition-all text-nowrap">
                         Change phone number
                     </button>
                 </div>
@@ -70,19 +70,19 @@ export default function AccountSettingsPage() {
                 <div className="flex items-center justify-between py-6 border-b border-slate-100">
                     <div className="flex items-center gap-2">
                         <p className="text-sm font-bold text-slate-900">Passkey</p>
-                        <Info size={16} className="text-pink-600 cursor-pointer" />
+                        <Info size={16} className="text-blue-600 cursor-pointer" />
                     </div>
-                    <button className="text-pink-600 font-bold border border-pink-600 px-4 py-2 rounded-xl text-sm hover:bg-pink-50 transition-all text-nowrap">
+                    <button className="text-blue-600 font-bold border border-blue-600 px-4 py-2 rounded-xl text-sm hover:bg-blue-50 transition-all text-nowrap">
                         Create passkey
                     </button>
                 </div>
 
                 {/* Social Accounts (Bottom Info) */}
                 <div className="flex items-center justify-between py-6">
-                    <p className="text-slate-500 font-medium text-sm truncate mr-4">{userProfile?.user?.email || 'qamerhassan6@gmail.com'}</p>
+                    <p className="text-slate-500 font-medium text-sm truncate mr-4">{userProfile?.user?.email || ''}</p>
                     <button
                         onClick={handleSignOut}
-                        className="text-pink-600 font-bold border border-pink-600 px-6 py-2 rounded-xl text-sm hover:bg-pink-50 transition-all text-nowrap"
+                        className="text-blue-600 font-bold border border-blue-600 px-6 py-2 rounded-xl text-sm hover:bg-blue-50 transition-all text-nowrap"
                     >
                         Sign out
                     </button>

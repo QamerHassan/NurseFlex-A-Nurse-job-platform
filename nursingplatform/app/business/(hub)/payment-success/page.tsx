@@ -91,20 +91,20 @@ function SuccessContent() {
 
   return (
     <div className="max-w-xl w-full space-y-12 animate-in fade-in zoom-in-95 duration-1000">
-      <Card className="border-none shadow-2xl shadow-pink-100/50 bg-white rounded-[4rem] overflow-hidden">
+      <Card className="border-none shadow-2xl shadow-blue-100/50 bg-white rounded-[4rem] overflow-hidden">
         <div className="bg-slate-900 p-16 text-center text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
           <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 rounded-[2rem] mb-10 shadow-2xl border border-white/20 relative z-10 scale-110">
             <CheckCircle size={48} className="text-emerald-400" />
           </div>
           <h1 className="text-4xl font-black tracking-tighter italic mb-4 uppercase relative z-10">Payment Successful</h1>
-          <Badge className="bg-pink-600 font-black text-[9px] uppercase tracking-[0.3em] px-4 py-1.5 shadow-lg shadow-blue-950/20 italic relative z-10">Account Active</Badge>
+          <Badge className="bg-blue-600 font-black text-[9px] uppercase tracking-[0.3em] px-4 py-1.5 shadow-lg shadow-blue-950/20 italic relative z-10">Account Active</Badge>
         </div>
 
         <CardContent className="p-12 space-y-10">
-          <div className="bg-pink-50/50 p-8 rounded-[2.5rem] border border-pink-100/50 flex items-start gap-6 relative group overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-pink-600/5 rounded-full blur-2xl -mr-12 -mt-12"></div>
-            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-pink-600 shrink-0 shadow-lg shadow-pink-100 relative z-10">
+          <div className="bg-blue-50/50 p-8 rounded-[2.5rem] border border-blue-100/50 flex items-start gap-6 relative group overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/5 rounded-full blur-2xl -mr-12 -mt-12"></div>
+            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-blue-600 shrink-0 shadow-lg shadow-blue-100 relative z-10">
                 <ShieldCheck size={28} />
             </div>
             <div className="space-y-3 relative z-10">
@@ -134,7 +134,7 @@ function SuccessContent() {
 
             <Separator className="my-8 bg-slate-50" />
 
-            <Button asChild size="lg" className="w-full h-20 rounded-[2rem] bg-slate-900 hover:bg-pink-600 text-white font-black uppercase tracking-tighter italic text-xl shadow-2xl transition-all active:scale-[0.97] group">
+            <Button asChild size="lg" className="w-full h-20 rounded-[2rem] bg-slate-900 hover:bg-blue-600 text-white font-black uppercase tracking-tighter italic text-xl shadow-2xl transition-all active:scale-[0.97] group">
               <Link href="/business/dashboard" className="flex items-center justify-center gap-4">
                 Go to Dashboard <LayoutDashboard size={24} className="group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -161,7 +161,7 @@ export default function PaymentSuccess() {
       <Suspense fallback={
         <Card className="max-w-xl w-full h-96 bg-white rounded-[4rem] shadow-2xl flex items-center justify-center">
             <div className="flex flex-col items-center gap-6">
-                <Loader2 className="animate-spin text-pink-600" size={48} />
+                <Loader2 className="animate-spin text-blue-600" size={48} />
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 italic animate-pulse">Confirming Payment...</p>
             </div>
         </Card>

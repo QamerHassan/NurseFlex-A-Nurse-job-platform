@@ -1,373 +1,191 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import {
-    ArrowLeft, Loader2, X, AlertCircle,
-    ChevronRight
-} from 'lucide-react';
+import { Loader2, ArrowLeft, X, ChevronRight, AlertCircle, Briefcase, Building2 } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function ExperiencePage() {
-    const { id } = useParams();
-    const router = useRouter();
-    const [job, setJob] = useState<any>(null);
+    const { id }  = useParams();
+    const router  = useRouter();
+    const [job, setJob]         = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [formData, setFormData] = useState({
-        jobTitle: '',
-        company: ''
-    });
-
-    // 🔥 Reporting States
-    const [activeReportStep, setActiveReportStep] = useState<'categories' | 'form' | null>(null);
-    const [selectedCategory, setSelectedCategory] = useState('');
-    const [feedbackText, setFeedbackText] = useState('');
-    const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
-
     const [showSaveModal, setShowSaveModal] = useState(false);
-    
-    const reportModalRef = useRef<HTMLDivElement>(null);
-    const modalRef = useRef<HTMLDivElement>(null);
+    const [form, setForm]       = useState({ jobTitle: '', company: '' });
+    const [reportStep, setReportStep]   = useState<'categories' | 'form' | null>(null);
+    const [reportCat, setReportCat]     = useState('');
+    const [reportText, setReportText]   = useState('');
+    const [submittingReport, setSubmittingReport] = useState(false);
 
-    // Load persisted data on mount
     useEffect(() => {
-        const savedData = localStorage.getItem('experienceFormData');
-        if (savedData) {
+        const init = async () => {
             try {
-                setFormData(JSON.parse(savedData));
+                const [jobsRes, profileRes] = await Promise.allSettled([
+                    api.get('/jobs'),
+                    api.get('/profile'),
+                ]);
+                if (jobsRes.status === 'fulfilled') {
+                    setJob(jobsRes.value.data.find((j: any) => j.id === id) || null);
+                }
+                const saved = localStorage.getItem('experienceFormData');
+                if (saved) {
+                    setForm(JSON.parse(saved));
+                } else if (profileRes.status === 'fulfilled') {
+                    const p = profileRes.value.data;
+                    setForm({ jobTitle: p.jobTitles?.[0] || '', company: '' });
+                }
             } catch (err) {
-                console.error("Failed to parse saved experience data", err);
-            }
-        }
-    }, []);
-
-    // Persist data on change
-    useEffect(() => {
-        localStorage.setItem('experienceFormData', JSON.stringify(formData));
-    }, [formData]);
-
-    useEffect(() => {
-        const fetchJob = async () => {
-            try {
-                const res = await api.get('/jobs');
-                const foundJob = res.data.find((j: any) => j.id === id);
-                setJob(foundJob);
-            } catch (err) {
-                console.error("Failed to fetch job for experience step");
+                console.error('ExperiencePage init:', err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchJob();
+        init();
     }, [id]);
 
-    const handleReportIssue = () => {
-        setShowSaveModal(false);
-        setActiveReportStep('categories');
-    };
-
-    const closeReportModal = () => {
-        setActiveReportStep(null);
-        setSelectedCategory('');
-        setFeedbackText('');
-    };
-
-    const handleSubmitFeedback = async () => {
-        if (!feedbackText.trim()) return;
-        setIsSubmittingFeedback(true);
-        try {
-            await api.post('/issue-reports', {
-                category: selectedCategory,
-                message: feedbackText,
-                jobId: id && typeof id === 'string' && id.length > 5 ? id : undefined,
-            });
-            closeReportModal();
-            alert('Thank you for your feedback! Our team and the employer have been notified.');
-        } catch (err: any) {
-            console.error('Failed to submit feedback', {
-                status: err.response?.status,
-                data: err.response?.data,
-                message: err.message
-            });
-            alert('Failed to submit feedback. Please try again later.');
-        } finally {
-            setIsSubmittingFeedback(false);
-        }
-    };
-
     useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (reportModalRef.current && !reportModalRef.current.contains(event.target as Node)) {
-                closeReportModal();
-            }
-            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-                setShowSaveModal(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [activeReportStep, showSaveModal]);
+        localStorage.setItem('experienceFormData', JSON.stringify(form));
+    }, [form]);
+
+    const handleSubmitReport = async () => {
+        if (!reportText.trim()) return;
+        setSubmittingReport(true);
+        try {
+            await api.post('/issue-reports', { category: reportCat, message: reportText, jobId: id });
+            setReportStep(null); setReportCat(''); setReportText('');
+            alert('Feedback submitted!');
+        } catch { alert('Failed to submit.'); }
+        finally { setSubmittingReport(false); }
+    };
 
     if (loading) return (
-        <div className="min-h-screen flex items-center justify-center bg-white">
-            <Loader2 className="animate-spin text-pink-600" size={40} />
+        <div className="min-h-screen flex items-center justify-center">
+            <Loader2 className="animate-spin text-blue-600" size={36} />
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-white font-sans flex flex-col relative">
-            <main className="flex-1 flex flex-col items-center bg-pink-50/30 pb-20">
-                <div className="max-w-2xl w-full px-4 pt-12">
+        <div className="min-h-screen bg-slate-50 font-sans">
+            <div className="bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+                <button onClick={() => router.push(`/jobs/${id}/apply`)} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 text-sm font-medium">
+                    <ArrowLeft size={16} /> Back
+                </button>
+                <p className="text-sm font-semibold text-slate-500">Step 3 of 4</p>
+                <button onClick={() => setShowSaveModal(true)} className="text-sm font-semibold text-blue-600 hover:underline">Save & close</button>
+            </div>
 
-                    {/* Job Header Card */}
-                    {job && (
-                        <div className="bg-white border border-pink-100 rounded-3xl p-8 mb-8 shadow-sm">
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-tight mb-2 italic text-center">
-                                {job.title}
-                            </h2>
-                            <p className="text-pink-500 font-bold text-sm text-center">
-                                {job.hospital} - {job.location}
-                            </p>
+            <div className="max-w-xl mx-auto px-4 py-8 space-y-5">
+                {job && (
+                    <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-green-500 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0">
+                            {job.title[0]?.toUpperCase()}
                         </div>
-                    )}
-
-                    {/* Progress Bar Container */}
-                    <div className="bg-white border border-pink-100 rounded-3xl p-8 mb-8 shadow-sm relative overflow-hidden">
-                        <div className="flex justify-between items-center mb-10">
-                            <button
-                                onClick={() => router.push(`/jobs/${id}/apply`)}
-                                className="flex items-center gap-2 text-pink-600 font-bold text-sm hover:underline"
-                            >
-                                <ArrowLeft size={16} /> Back
-                            </button>
-                            <button 
-                                onClick={() => setShowSaveModal(true)}
-                                className="text-pink-600 font-bold text-sm hover:underline"
-                            >
-                                Save and close
-                            </button>
-                        </div>
-
-                        <div className="flex justify-between items-center mb-6">
-                            <div className="flex-1 h-2 bg-pink-50 rounded-full mr-4 relative overflow-hidden">
-                                <div
-                                    className="absolute top-0 left-0 h-full bg-pink-600 rounded-full transition-all duration-1000 ease-out"
-                                    style={{ width: '75%' }}
-                                ></div>
-                            </div>
-                            <span className="text-[11px] font-black text-pink-400 uppercase tracking-widest">75%</span>
-                        </div>
-
-                        <div className="space-y-12">
-                            <div>
-                                <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter italic mb-4 leading-tight">
-                                    Work Experience
-                                </h1>
-                                <p className="text-pink-600 font-medium text-lg leading-relaxed">
-                                    We share one job title with the employer to introduce you as a candidate.
-                                </p>
-                            </div>
-
-                            {/* Form Content */}
-                            <div className="bg-white border border-pink-100 rounded-3xl p-6 md:p-8 shadow-sm space-y-8">
-                                <div className="space-y-4">
-                                    <label className="text-xs font-bold uppercase tracking-wide text-pink-400 ml-1">Job title</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. Registered Nurse"
-                                        className="w-full p-5 bg-pink-50/50 border border-pink-100 rounded-3xl font-semibold text-slate-900 placeholder:text-pink-300 outline-none focus:bg-white focus:border-pink-400 focus:ring-4 focus:ring-pink-50 transition-all text-lg"
-                                        value={formData.jobTitle}
-                                        onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="space-y-4">
-                                    <label className="text-xs font-bold uppercase tracking-wide text-pink-400 ml-1">Company</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. City Hospital"
-                                        className="w-full p-5 bg-pink-50/50 border border-pink-100 rounded-3xl font-semibold text-slate-900 placeholder:text-pink-300 outline-none focus:bg-white focus:border-pink-400 focus:ring-4 focus:ring-pink-50 transition-all text-lg"
-                                        value={formData.company}
-                                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Save & Next Button */}
-                            <button
-                                onClick={() => router.push(`/jobs/${id}/apply/review`)}
-                                className="w-full py-5 bg-pink-600 text-white font-bold rounded-2xl text-lg hover:bg-pink-700 shadow-md shadow-pink-200 transition-all uppercase tracking-widest mt-4"
-                            >
-                                Save & Next
-                            </button>
-
-                            {/* 🔥 Reporting Section */}
-                            <div className="text-center pt-8">
-                                <p className="text-xs font-bold text-pink-400 uppercase tracking-wide leading-relaxed">
-                                    Having an issue with this application? <span onClick={handleReportIssue} className="text-pink-600 underline cursor-pointer hover:text-pink-700">Tell us more</span>
-                                </p>
-                                <div className="mt-6 text-[10px] text-pink-300 font-bold max-w-sm mx-auto uppercase tracking-tighter leading-tight">
-                                    This site is protected by reCAPTCHA and the Google <span className="underline hover:text-pink-400 cursor-pointer">Privacy Policy</span> and <span className="underline hover:text-pink-400 cursor-pointer">Terms of Service</span> apply.
-                                </div>
-                            </div>
+                        <div>
+                            <p className="font-semibold text-slate-900 text-sm">{job.title}</p>
+                            <p className="text-xs text-slate-400">{job.hospital} · {job.location}</p>
                         </div>
                     </div>
+                )}
+
+                <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+                        <span>Progress</span><span>75%</span>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full w-3/4 bg-gradient-to-r from-blue-600 to-green-500 rounded-full transition-all duration-700" />
+                    </div>
                 </div>
-            </main>
 
-            {/* 🚀 INDEED-STYLE SAVE MODAL */}
-            {showSaveModal && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"></div>
-                    <div 
-                        ref={modalRef}
-                        className="relative bg-white w-full max-w-md rounded-3xl p-8 md:p-10 shadow-2xl animate-in fade-in zoom-in-95 duration-300"
-                    >
-                        <button 
-                            onClick={() => setShowSaveModal(false)}
-                            className="absolute right-6 top-6 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-full transition-all"
-                        >
-                            <X size={24} />
-                        </button>
+                <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-5">
+                    <div>
+                        <h1 className="text-xl font-bold text-slate-900">Work Experience</h1>
+                        <p className="text-sm text-slate-400 mt-0.5">We share your most recent job title with the employer.</p>
+                    </div>
 
-                        <div className="text-center space-y-6">
-                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                                Save application progress before you exit
-                            </h2>
-                            <p className="text-slate-500 font-medium text-base leading-relaxed">
-                                Your application progress will be saved to My jobs. You can finish this application anytime within 14 days.
-                            </p>
-
-                            <div className="space-y-4 pt-6">
-                                <button 
-                                    onClick={() => router.push('/dashboard')}
-                                    className="w-full h-14 bg-pink-600 hover:bg-pink-700 text-white font-black uppercase tracking-widest rounded-3xl text-sm shadow-xl shadow-pink-100 transition-all active:scale-[0.98]"
-                                >
-                                    Save
-                                </button>
-                                <button 
-                                    onClick={() => router.push('/dashboard')}
-                                    className="w-full h-14 border border-slate-100 text-pink-600 font-bold rounded-3xl hover:bg-slate-50 transition-all active:scale-[0.98]"
-                                >
-                                    Don't save
-                                </button>
-                                <button 
-                                    onClick={handleReportIssue}
-                                    className="text-pink-600 font-bold text-sm hover:underline pt-2"
-                                >
-                                    Report an issue
-                                </button>
+                    {[
+                        { label: 'Most Recent Job Title', key: 'jobTitle', icon: Briefcase,  placeholder: 'e.g. Registered Nurse' },
+                        { label: 'Company / Facility',    key: 'company',  icon: Building2,  placeholder: 'e.g. City Medical Center' },
+                    ].map(f => (
+                        <div key={f.key} className="space-y-1.5">
+                            <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{f.label}</label>
+                            <div className="relative">
+                                <f.icon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                <input
+                                    value={(form as any)[f.key]}
+                                    onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                                    placeholder={f.placeholder}
+                                    className="w-full h-10 pl-8 pr-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white outline-none text-sm font-medium text-slate-900 transition-all"
+                                />
                             </div>
+                        </div>
+                    ))}
+
+                    <button onClick={() => router.push(`/jobs/${id}/apply/review`)}
+                        className="w-full h-11 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md transition-all mt-2">
+                        Save & Continue →
+                    </button>
+
+                    <p className="text-center text-xs text-slate-400">
+                        Having an issue?{' '}
+                        <button onClick={() => setReportStep('categories')} className="text-blue-600 hover:underline font-medium">Tell us more</button>
+                    </p>
+                </div>
+            </div>
+
+            {showSaveModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl p-7 max-w-sm w-full shadow-2xl space-y-5 relative">
+                        <button onClick={() => setShowSaveModal(false)} className="absolute top-4 right-4 text-slate-400"><X size={20} /></button>
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-900">Save progress before leaving?</h3>
+                            <p className="text-sm text-slate-400 mt-1">You can finish within 14 days.</p>
+                        </div>
+                        <div className="space-y-3">
+                            <button onClick={() => router.push('/dashboard')} className="w-full h-11 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold text-sm">Save & Exit</button>
+                            <button onClick={() => router.push('/dashboard')} className="w-full h-11 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50">Don't Save</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* 🔥 Reporting Modal UI */}
-            {activeReportStep && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px] animate-in fade-in duration-300">
-                    <div 
-                        ref={reportModalRef}
-                        className="bg-white w-full max-w-[480px] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
-                    >
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-slate-50">
-                            {activeReportStep === 'form' ? (
-                                <button 
-                                    onClick={() => setActiveReportStep('categories')}
-                                    className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-600"
-                                >
-                                    <ArrowLeft className="w-5 h-5" />
-                                </button>
-                            ) : <div className="w-9" />}
-                            
-                            <button 
-                                onClick={closeReportModal}
-                                className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
+            {reportStep && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+                        <div className="flex items-center justify-between p-5 border-b border-slate-50">
+                            {reportStep === 'form' ? <button onClick={() => setReportStep('categories')} className="p-1.5 hover:bg-slate-50 rounded-full"><ArrowLeft size={16} /></button> : <div className="w-8" />}
+                            <button onClick={() => setReportStep(null)} className="p-1.5 hover:bg-slate-50 rounded-full text-slate-400"><X size={18} /></button>
                         </div>
-
-                        {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-8 pt-4">
-                            {activeReportStep === 'categories' ? (
+                        <div className="p-6">
+                            {reportStep === 'categories' ? (
                                 <>
-                                    <h2 className="text-2xl font-bold text-slate-900 mb-2">What is the issue?</h2>
-                                    <p className="text-slate-500 text-sm mb-6 leading-relaxed">
-                                        Your feedback will help us fix issues and improve your experience across NursingPlatform.
-                                    </p>
-
+                                    <h3 className="text-lg font-bold text-slate-900 mb-4">What is the issue?</h3>
                                     <div className="space-y-2">
-                                        {[
-                                            "Unable to continue to the next step",
-                                            "Email address cannot be updated",
-                                            "Unable to upload a file",
-                                            "Issues with my resume or cover letter",
-                                            "There's a technical problem with employer's question",
-                                            "Uncomfortable answering or did not understand an employer's question",
-                                            "Something else",
-                                            "Share your ideas to help us improve our services"
-                                        ].map((cat) => (
-                                            <button
-                                                key={cat}
-                                                onClick={() => {
-                                                    setSelectedCategory(cat);
-                                                    setActiveReportStep('form');
-                                                }}
-                                                className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-pink-200 hover:bg-pink-50/30 transition-all text-left group"
-                                            >
-                                                <span className="text-slate-700 font-medium group-hover:text-pink-700 transition-colors">{cat}</span>
-                                                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-pink-500 transition-colors" />
+                                        {["Can't continue to next step", 'Form not saving', 'Something else'].map(cat => (
+                                            <button key={cat} onClick={() => { setReportCat(cat); setReportStep('form'); }}
+                                                className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 text-sm text-slate-700 text-left transition-all">
+                                                {cat} <ChevronRight size={14} className="text-slate-300" />
                                             </button>
                                         ))}
                                     </div>
                                 </>
                             ) : (
                                 <>
-                                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Please tell us what happened</h2>
-                                    <p className="text-slate-500 text-sm mb-6 leading-relaxed">
-                                        Your feedback won't be shared with the employer.
-                                    </p>
-
-                                    <div className="bg-pink-50/50 border border-pink-100 p-4 rounded-xl flex gap-3 mb-6">
-                                        <AlertCircle className="w-5 h-5 text-pink-600 shrink-0" />
-                                        <p className="text-pink-900 text-[13px] leading-snug">
-                                            Do not include any sensitive information such as phone numbers or email addresses.
-                                        </p>
+                                    <h3 className="text-lg font-bold text-slate-900 mb-4">Tell us what happened</h3>
+                                    <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl mb-4 text-xs text-blue-700">
+                                        <AlertCircle size={13} className="shrink-0 mt-0.5" /> Don't include personal contact details.
                                     </div>
-
-                                    <textarea
-                                        value={feedbackText}
-                                        onChange={(e) => setFeedbackText(e.target.value)}
-                                        placeholder="Type your feedback here..."
-                                        className="w-full h-40 p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none text-slate-700 placeholder:text-slate-400 transition-all"
-                                    />
-
-                                    <div className="mt-8">
-                                        <button
-                                            onClick={handleSubmitFeedback}
-                                            disabled={isSubmittingFeedback || !feedbackText.trim()}
-                                            className="w-full h-14 bg-pink-600 hover:bg-pink-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
-                                        >
-                                            {isSubmittingFeedback ? (
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                            ) : 'Submit feedback'}
-                                        </button>
-                                    </div>
+                                    <textarea value={reportText} onChange={e => setReportText(e.target.value)} rows={4}
+                                        placeholder="Describe the issue..."
+                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none outline-none focus:border-blue-400 transition-all" />
+                                    <button onClick={handleSubmitReport} disabled={submittingReport || !reportText.trim()}
+                                        className="w-full h-11 mt-4 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2">
+                                        {submittingReport ? <><Loader2 size={14} className="animate-spin" />Submitting...</> : 'Submit Feedback'}
+                                    </button>
                                 </>
                             )}
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* FOOTER */}
-            <footer className="bg-white border-t border-slate-100 py-12 px-6">
-                <p className="text-center text-[10px] text-slate-300 font-bold uppercase tracking-[0.3em]">
-                    © 2026 NurseFlex • Cookies, Privacy and Terms
-                </p>
-            </footer>
         </div>
     );
 }

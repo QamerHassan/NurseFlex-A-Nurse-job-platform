@@ -16,7 +16,7 @@ export default function AdminLoginPage() {
     setError('');
     
     // Credentials Check
-    const ADMIN_EMAIL = "qamerhassan6@gmail.com";
+    const ADMIN_EMAIL = "qamerhassan445@gmail.com";
     const ADMIN_PW = "8ETj7@Zv";
 
     if (email === ADMIN_EMAIL && password === ADMIN_PW) {

@@ -36,13 +36,22 @@ export class ProfileService {
 
   // 2. Profile update ya create karne ke liye (Smart Upsert)
   async updateProfile(userId: string, data: any) {
-    // Upsert ka matlab: Agar hai toh Update karo, nahi hai toh Create karo
+    // 1. Update User name if provided
+    if (data.name) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { name: data.name }
+      });
+    }
+
+    // 2. Upsert Profile
     return this.prisma.profile.upsert({
       where: { userId },
       update: {
         name: data.name,
         phone: data.phone,
         bio: data.bio,
+        specialization: data.specialization,
         experience: data.experience,
         skills: data.skills,
         location: data.location,
@@ -60,6 +69,7 @@ export class ProfileService {
         name: data.name,
         phone: data.phone,
         bio: data.bio,
+        specialization: data.specialization,
         experience: data.experience,
         skills: data.skills,
         location: data.location,

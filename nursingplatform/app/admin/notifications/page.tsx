@@ -112,7 +112,7 @@ export default function AdminNotificationsPage() {
             variant="ghost" 
             onClick={markAllRead}
             disabled={notifications.length === 0}
-            className="h-12 px-6 rounded-xl text-[#ec4899] hover:bg-pink-50 font-bold uppercase text-[10px] tracking-widest disabled:opacity-50 transition-all active:scale-95"
+            className="h-12 px-6 rounded-xl text-blue-600 hover:bg-blue-50 font-bold uppercase text-[10px] tracking-widest disabled:opacity-50 transition-all active:scale-95"
           >
             Mark All as Read <History size={16} className="ml-2" />
           </Button>
@@ -157,11 +157,11 @@ export default function AdminNotificationsPage() {
                                   className={`block group cursor-pointer border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgb(0,0,0,0.08)] bg-white rounded-[2.5rem] p-8 transition-all duration-500 hover:-translate-y-1 relative overflow-hidden ${!isNew ? 'opacity-60' : ''}`}
                               >
                                   {/* Interaction Hover Glow */}
-                                  <div className="absolute inset-0 bg-gradient-to-br from-pink-500/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                   
                                   <div className="flex items-center gap-8 relative z-10">
                                       {/* Icon Container */}
-                                      <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center shrink-0 shadow-sm transition-all duration-500 ${isNew ? 'bg-pink-600 text-white group-hover:scale-110 group-hover:rotate-3' : 'bg-slate-50 text-slate-300'}`}>
+                                      <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center shrink-0 shadow-sm transition-all duration-500 ${isNew ? 'bg-blue-600 text-white group-hover:scale-110 group-hover:rotate-3' : 'bg-slate-50 text-slate-300'}`}>
                                           <Icon size={28} className={isNew ? 'animate-in zoom-in-50 duration-500' : ''} />
                                       </div>
 
@@ -169,11 +169,11 @@ export default function AdminNotificationsPage() {
                                       <div className="flex-1 min-w-0">
                                           <div className="flex justify-between items-start mb-2">
                                               <div className="space-y-1">
-                                                  <h3 className={`text-xl font-bold tracking-tight transition-colors ${isNew ? 'text-slate-900 group-hover:text-[#ec4899]' : 'text-slate-400'}`}>
+                                              <h3 className={`text-xl font-bold tracking-tight transition-colors ${isNew ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-400'}`}>
                                                       {n.title}
                                                   </h3>
                                                   <div className="flex items-center gap-2">
-                                                      <span className={`text-[10px] font-bold uppercase tracking-widest ${isNew ? 'text-pink-600' : 'text-slate-300'}`}>
+                                                      <span className={`text-[10px] font-bold uppercase tracking-widest ${isNew ? 'text-blue-600' : 'text-slate-300'}`}>
                                                           {n.type.replace('_', ' ')}
                                                       </span>
                                                       <span className="w-1 h-1 bg-slate-200 rounded-full" />
@@ -182,8 +182,8 @@ export default function AdminNotificationsPage() {
                                               </div>
                                               {isNew && (
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-[9px] font-bold text-pink-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">New Event</span>
-                                                    <div className="w-2.5 h-2.5 bg-pink-600 rounded-full animate-pulse shadow-lg shadow-pink-500/50"></div>
+                                                    <span className="text-[9px] font-bold text-blue-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">New Event</span>
+                                                    <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-pulse shadow-lg shadow-blue-500/50"></div>
                                                 </div>
                                               )}
                                           </div>
@@ -192,7 +192,7 @@ export default function AdminNotificationsPage() {
                                           </p>
                                       </div>
 
-                                      <div className="h-10 w-10 text-slate-200 group-hover:text-pink-600 group-hover:bg-pink-50 rounded-xl transition-all flex items-center justify-center">
+                                      <div className="h-10 w-10 text-slate-200 group-hover:text-blue-600 group-hover:bg-blue-50 rounded-xl transition-all flex items-center justify-center">
                                           <ChevronRight size={18} />
                                       </div>
                                   </div>
@@ -203,7 +203,7 @@ export default function AdminNotificationsPage() {
                 </>
             ) : (
                 <Card className="flex flex-col items-center justify-center py-32 text-center bg-white rounded-[3rem] border border-dashed border-slate-100 shadow-inner overflow-hidden relative">
-                    <div className="absolute top-10 right-10 opacity-5 rotate-12 scale-150 text-pink-500">
+                    <div className="absolute top-10 right-10 opacity-5 rotate-12 scale-150 text-blue-500">
                         <Bell size={120} />
                     </div>
                     <div className="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-200 mb-8 border border-slate-50 shadow-inner relative z-10 transition-transform hover:scale-105 duration-500">
@@ -215,7 +215,7 @@ export default function AdminNotificationsPage() {
                             No active alerts found. All systems reporting optimal clearance.
                         </p>
                     </div>
-                    <Button asChild className="h-14 px-10 rounded-2xl bg-slate-900 hover:bg-pink-600 text-white font-black uppercase text-[11px] tracking-widest shadow-xl transition-all active:scale-95 relative z-10">
+                    <Button asChild className="h-14 px-10 rounded-2xl bg-slate-900 hover:bg-blue-600 text-white font-black uppercase text-[11px] tracking-widest shadow-xl transition-all active:scale-95 relative z-10">
                         <Link href="/admin/dashboard" className="flex items-center gap-3">
                             Check Dashboard <ArrowRight size={16} />
                         </Link>

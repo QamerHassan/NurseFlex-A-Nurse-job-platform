@@ -4,10 +4,37 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('⏳ Seeding database with USA Nursing Jobs...');
+  console.log('⏳ Seeding database with USA Nursing Jobs and Tiers...');
 
   // Pehle purana data clear kar dete hain taake mix na ho
   await prisma.job.deleteMany({});
+  await prisma.subscriptionTier.deleteMany({});
+
+  // Seed Subscription Tiers
+  console.log('⏳ Seeding Subscription Tiers...');
+  const tiers = [
+    { 
+      id: '65f1a2b3c4d5e6f7a8b9c0d1', // Fixed ID for Starter
+      name: 'Starter', 
+      price: 49, 
+      jobsLimit: 5, 
+      features: ["5 Active Job Posts", "Email Support", "Basic Analytics"],
+      isPopular: false
+    },
+    { 
+      id: '65f1a2b3c4d5e6f7a8b9c0d2', // Fixed ID for Pro Max
+      name: 'Pro Max', 
+      price: 199, 
+      jobsLimit: 1000, // Unlimited
+      features: ["Unlimited Job Posts", "Priority Support", "Advanced Analytics", "Featured Posts"],
+      isPopular: true
+    }
+  ];
+
+  for (const tier of tiers) {
+    await prisma.subscriptionTier.create({ data: tier });
+  }
+  console.log('✅ Subscription Tiers seeded!');
 
   const usaJobs = [
     { title: 'Registered Nurse (ICU)', hospital: 'Mayo Clinic', location: 'Rochester, MN', salary: '$45 - $60/hr', type: 'Night Shift', description: 'Provide critical care in one of the top-rated hospitals in the US.' },

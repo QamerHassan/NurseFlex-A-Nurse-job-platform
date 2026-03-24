@@ -42,12 +42,12 @@ export default function NurseProfile() {
       return;
     }
 
-    // 3. Unified Pending Guard
+    // 3. Role Guard
     const localUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
-    const isPending = (session?.user as any)?.status === 'PENDING' || localUser?.status === 'PENDING';
-    if (isPending) {
-      router.replace('/auth/pending');
-      return;
+    const userRole = (session?.user as any)?.role || localUser?.role;
+    if (userRole === 'BUSINESS') {
+        router.replace('/business/dashboard');
+        return;
     }
 
     fetchData();
@@ -99,7 +99,7 @@ export default function NurseProfile() {
 
   if (loading && !profile) return (
     <div className="flex h-screen items-center justify-center bg-white">
-      <Loader2 className="animate-spin text-pink-600" size={40} />
+      <Loader2 className="animate-spin text-blue-600" size={40} />
     </div>
   );
 
@@ -112,9 +112,9 @@ export default function NurseProfile() {
       {/* 🚀 INDEED-STYLE TOP NAV */}
       <nav className="border-b bg-white sticky top-0 z-[100] px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href="/dashboard" className="text-pink-600 text-3xl font-black tracking-tighter italic">NurseFlex</Link>
+          <Link href="/dashboard" className="text-blue-600 text-3xl font-black tracking-tighter italic">NurseFlex</Link>
           <div className="hidden md:flex gap-6 font-bold text-slate-600 text-sm">
-            <Link href="/dashboard" className="hover:text-pink-600 transition-colors pb-2 border-b-2 border-transparent">Find Jobs</Link>
+            <Link href="/dashboard" className="hover:text-blue-600 transition-colors pb-2 border-b-2 border-transparent">Find Jobs</Link>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -140,12 +140,12 @@ export default function NurseProfile() {
             {editingField === 'name' ? (
               <div className="flex items-center gap-2 mb-6">
                 <input
-                  className="text-4xl font-black text-slate-900 bg-slate-50 border-b-2 border-pink-600 outline-none w-full tracking-tight italic"
+                  className="text-4xl font-black text-slate-900 bg-slate-50 border-b-2 border-blue-600 outline-none w-full tracking-tight italic"
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
                   autoFocus
                 />
-                <button onClick={saveEdit} disabled={saving} className="p-2 bg-pink-600 text-white rounded-lg"><Check size={20} /></button>
+                <button onClick={saveEdit} disabled={saving} className="p-2 bg-blue-600 text-white rounded-lg"><Check size={20} /></button>
                 <button onClick={cancelEditing} className="p-2 bg-slate-100 text-slate-400 rounded-lg"><X size={20} /></button>
               </div>
             ) : (
@@ -155,11 +155,11 @@ export default function NurseProfile() {
               >
                 {displayName}
                 {profile?.user?.status === 'APPROVED' && (
-                  <Badge className="bg-pink-600 text-white font-black text-[10px] uppercase tracking-widest px-3 py-1 italic border-none shadow-lg flex items-center gap-2">
+                  <Badge className="bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest px-3 py-1 italic border-none shadow-lg flex items-center gap-2">
                     <ShieldCheck size={12} /> Verified
                   </Badge>
                 )}
-                <Edit2 size={18} className="text-slate-200 group-hover:text-pink-600 transition-colors" />
+                <Edit2 size={18} className="text-slate-200 group-hover:text-blue-600 transition-colors" />
               </h1>
             )}
 
@@ -172,14 +172,14 @@ export default function NurseProfile() {
               <div className="group cursor-pointer">
                 {editingField === 'phone' ? (
                   <div className="flex items-center gap-2">
-                    <Phone size={18} className="text-pink-600" />
+                    <Phone size={18} className="text-blue-600" />
                     <input
-                      className="font-bold text-sm tracking-tight border-b border-pink-600 outline-none flex-1 bg-slate-50 p-1"
+                      className="font-bold text-sm tracking-tight border-b border-blue-600 outline-none flex-1 bg-slate-50 p-1"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       autoFocus
                     />
-                    <button onClick={saveEdit} disabled={saving} className="text-pink-600"><Check size={16} /></button>
+                    <button onClick={saveEdit} disabled={saving} className="text-blue-600"><Check size={16} /></button>
                     <button onClick={cancelEditing} className="text-slate-400"><X size={16} /></button>
                   </div>
                 ) : (
@@ -188,7 +188,7 @@ export default function NurseProfile() {
                       <Phone size={18} className="text-slate-400" />
                       <span className="font-bold text-sm tracking-tight">{profile?.phone || 'Add phone number'}</span>
                     </div>
-                    <Edit2 size={14} className="text-slate-200 group-hover:text-pink-600 transition-colors" />
+                    <Edit2 size={14} className="text-slate-200 group-hover:text-blue-600 transition-colors" />
                   </div>
                 )}
               </div>
@@ -196,14 +196,14 @@ export default function NurseProfile() {
               <div className="group cursor-pointer">
                 {editingField === 'specialization' ? (
                   <div className="flex items-center gap-2">
-                    <Award size={18} className="text-pink-600" />
+                    <Award size={18} className="text-blue-600" />
                     <input
-                      className="font-bold text-sm tracking-tight border-b border-pink-600 outline-none flex-1 bg-slate-50 p-1"
+                      className="font-bold text-sm tracking-tight border-b border-blue-600 outline-none flex-1 bg-slate-50 p-1"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       autoFocus
                     />
-                    <button onClick={saveEdit} disabled={saving} className="text-pink-600"><Check size={16} /></button>
+                    <button onClick={saveEdit} disabled={saving} className="text-blue-600"><Check size={16} /></button>
                     <button onClick={cancelEditing} className="text-slate-400"><X size={16} /></button>
                   </div>
                 ) : (
@@ -212,7 +212,7 @@ export default function NurseProfile() {
                       <Award size={18} className="text-slate-400" />
                       <span className="font-bold text-sm tracking-tight">{profile?.specialization || 'Add specialization'}</span>
                     </div>
-                    <Edit2 size={14} className="text-slate-200 group-hover:text-pink-600 transition-colors" />
+                    <Edit2 size={14} className="text-slate-200 group-hover:text-blue-600 transition-colors" />
                   </div>
                 )}
               </div>
@@ -220,15 +220,15 @@ export default function NurseProfile() {
               <div className="group cursor-pointer">
                 {editingField === 'yearsOfExperience' ? (
                   <div className="flex items-center gap-2">
-                    <History size={18} className="text-pink-600" />
+                    <History size={18} className="text-blue-600" />
                     <input
-                      className="font-bold text-sm tracking-tight border-b border-pink-600 outline-none flex-1 bg-slate-50 p-1"
+                      className="font-bold text-sm tracking-tight border-b border-blue-600 outline-none flex-1 bg-slate-50 p-1"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       autoFocus
                       type="number"
                     />
-                    <button onClick={saveEdit} disabled={saving} className="text-pink-600"><Check size={16} /></button>
+                    <button onClick={saveEdit} disabled={saving} className="text-blue-600"><Check size={16} /></button>
                     <button onClick={cancelEditing} className="text-slate-400"><X size={16} /></button>
                   </div>
                 ) : (
@@ -237,7 +237,7 @@ export default function NurseProfile() {
                       <History size={18} className="text-slate-400" />
                       <span className="font-bold text-sm tracking-tight">{profile?.yearsOfExperience || profile?.experience || '0'} Years Experience</span>
                     </div>
-                    <Edit2 size={14} className="text-slate-200 group-hover:text-pink-600 transition-colors" />
+                    <Edit2 size={14} className="text-slate-200 group-hover:text-blue-600 transition-colors" />
                   </div>
                 )}
               </div>
@@ -250,39 +250,27 @@ export default function NurseProfile() {
         </section>
 
         {/* STATUS BAR */}
-        {profile?.user?.status === 'APPROVED' ? (
-          <div className="bg-pink-50 border border-pink-100 p-4 rounded-xl flex items-center justify-between mb-12 group cursor-pointer hover:bg-pink-100/50 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-pink-600 border border-pink-100 shadow-sm">
-                <ShieldCheck size={16} />
-              </div>
-              <span className="text-sm font-black text-slate-800 italic uppercase tracking-tighter">Your profile is Verified</span>
+        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between mb-12 group cursor-pointer hover:bg-blue-100/50 transition-colors">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-blue-600 border border-blue-100 shadow-sm">
+              <ShieldCheck size={16} />
             </div>
-            <ChevronRight size={20} className="text-slate-400" />
+            <span className="text-sm font-black text-slate-800 italic uppercase tracking-tighter">Your profile is Verified</span>
           </div>
-        ) : (
-          <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl flex items-center justify-between mb-12 group cursor-pointer hover:bg-orange-100/50 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-orange-600 border border-orange-100 shadow-sm">
-                <History size={16} className="animate-pulse" />
-              </div>
-              <span className="text-sm font-black text-slate-800 italic uppercase tracking-tighter text-orange-700">Profile Review Pending</span>
-            </div>
-            <ChevronRight size={20} className="text-slate-400" />
-          </div>
-        )}
+          <ChevronRight size={20} className="text-slate-400" />
+        </div>
 
         {/* RESUME SECTION */}
         <section className="mb-12">
           <h2 className="text-xl font-black text-slate-900 mb-6 uppercase italic tracking-tighter leading-none border-b border-slate-100 pb-4">Resume</h2>
-          <div className="p-6 border border-slate-200 rounded-2xl flex items-center justify-between group hover:border-pink-200 transition-all shadow-sm">
+          <div className="p-6 border border-slate-200 rounded-2xl flex items-center justify-between group hover:border-blue-200 transition-all shadow-sm">
             <div className="flex items-center gap-4">
               <div className="w-12 h-14 bg-slate-50 border border-slate-100 rounded-lg flex flex-col items-center justify-between py-2 shrink-0">
                 <FileText size={20} className="text-slate-300" />
-                <div className="bg-pink-600 text-[8px] text-white font-black px-1.5 py-0.5 rounded uppercase">PDF</div>
+                <div className="bg-blue-600 text-[8px] text-white font-black px-1.5 py-0.5 rounded uppercase">PDF</div>
               </div>
               <div>
-                <h3 className="font-black text-slate-900 text-sm tracking-tight group-hover:text-pink-600 transition-colors">
+                <h3 className="font-black text-slate-900 text-sm tracking-tight group-hover:text-blue-600 transition-colors">
                   {profile?.name || 'Resume'}_CV.pdf
                 </h3>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Added today</p>

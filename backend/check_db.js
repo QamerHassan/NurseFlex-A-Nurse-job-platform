@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function checkUsers() {
     console.log('--- USER DIAGNOSTIC ---');
     try {
-        const emails = ['qamerhassan455@gmail.com', 'qamerhassan6@gmail.com'];
+        const emails = ['qamerhassan445@gmail.com', 'qamerhassan6@gmail.com'];
         const users = await prisma.user.findMany({
             where: { email: { in: emails } },
             select: {

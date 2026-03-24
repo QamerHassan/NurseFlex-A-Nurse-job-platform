@@ -1,24 +1,16 @@
 "use client";
 import React, { useState } from 'react';
-import { 
-    Search, 
-    Download, 
-    Filter, 
-    ArrowUpRight, 
-    ArrowDownRight, 
-    Users, 
-    Activity, 
-    DollarSign, 
-    MapPin,
-    ArrowUpDown,
-    ExternalLink
+import {
+    Search, Download, ArrowUpRight,
+    ArrowDownRight, Users, Activity,
+    DollarSign, MapPin, ArrowUpDown, ExternalLink
 } from 'lucide-react';
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
+import { Card, CardContent } from "@/app/components/ui/card";
 import { Badge } from "@/app/components/ui/badge";
 
-// Mock data for all 50 US States
+// ── Data ──────────────────────────────────────────────────────────────────────
 const US_NURSE_STATS = [
     { id: 1, state: 'California', code: 'CA', total: 325400, vacancies: 12450, avgSalary: 133340, trend: 'up' },
     { id: 2, state: 'Texas', code: 'TX', total: 231000, vacancies: 15200, avgSalary: 84320, trend: 'up' },
@@ -69,188 +61,269 @@ const US_NURSE_STATS = [
     { id: 47, state: 'North Dakota', code: 'ND', total: 10000, vacancies: 300, avgSalary: 73540, trend: 'stable' },
     { id: 48, state: 'Alaska', code: 'AK', total: 6000, vacancies: 400, avgSalary: 103310, trend: 'up' },
     { id: 49, state: 'Vermont', code: 'VT', total: 7000, vacancies: 300, avgSalary: 79540, trend: 'down' },
-    { id: 50, state: 'Wyoming', code: 'WY', total: 5500, vacancies: 200, avgSalary: 79140, trend: 'stable' }
+    { id: 50, state: 'Wyoming', code: 'WY', total: 5500, vacancies: 200, avgSalary: 79140, trend: 'stable' },
 ];
+
+const PAGE_SIZE = 15;
 
 export default function NurseStatsPage() {
     const [search, setSearch] = useState('');
     const [sortField, setSortField] = useState('total');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [page, setPage] = useState(1);
 
-    const filteredData = US_NURSE_STATS
-        .filter(item => item.state.toLowerCase().includes(search.toLowerCase()) || item.code.toLowerCase().includes(search.toLowerCase()))
+    // ── Filter + Sort ─────────────────────────────────────────────────────────
+    const filtered = US_NURSE_STATS
+        .filter(d =>
+            d.state.toLowerCase().includes(search.toLowerCase()) ||
+            d.code.toLowerCase().includes(search.toLowerCase())
+        )
         .sort((a, b) => {
             const factor = sortOrder === 'asc' ? 1 : -1;
             return ((a as any)[sortField] > (b as any)[sortField] ? 1 : -1) * factor;
         });
 
+    // ── Pagination ────────────────────────────────────────────────────────────
+    const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+    const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
     const toggleSort = (field: string) => {
-        if (sortField === field) {
-            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortField(field);
-            setSortOrder('desc');
-        }
+        if (sortField === field) setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
+        else { setSortField(field); setSortOrder('desc'); }
+        setPage(1);
+    };
+
+    // ── Export CSV ────────────────────────────────────────────────────────────
+    const handleExport = () => {
+        const header = 'State,Code,Total Nurses,Open Vacancies,Avg Salary,Trend';
+        const rows = filtered.map(d =>
+            `"${d.state}","${d.code}",${d.total},${d.vacancies},${d.avgSalary},"${d.trend}"`
+        );
+        const csv = [header, ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'usa_nurse_stats.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // ── Trend helpers ─────────────────────────────────────────────────────────
+    const trendLabel: Record<string, { label: string; color: string; Icon: any }> = {
+        up: { label: 'Growing', color: 'text-green-500', Icon: ArrowUpRight },
+        down: { label: 'Declining', color: 'text-slate-400', Icon: ArrowDownRight },
+        stable: { label: 'Stable', color: 'text-blue-400', Icon: Activity },
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700">
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight italic uppercase">USA Nurse Census</h1>
-                    <p className="text-sm text-slate-500 font-medium">State-wise distribution and workforce statistics.</p>
+        <div className="space-y-8 font-sans">
+
+            {/* ── Header ── */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-medium text-slate-900 tracking-tight">US Nurse Statistics</h1>
+                    <p className="text-sm text-slate-400 font-medium mt-0.5">
+                        Nurse count, open jobs, and salary by state.
+                    </p>
                 </div>
 
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                    <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm grow md:w-80 transition-all focus-within:ring-2 focus-within:ring-pink-500/10 focus-within:border-pink-500/30">
-                        <Search className="text-slate-400" size={18} />
-                        <Input 
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    {/* Search */}
+                    <div className="flex items-center gap-2 bg-white px-4 h-11 rounded-xl border border-slate-200 shadow-sm flex-1 md:w-72 focus-within:ring-2 focus-within:ring-blue-500/10 focus-within:border-blue-500/30 transition-all">
+                        <Search size={16} className="text-slate-400 shrink-0" />
+                        <Input
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search states..." 
-                            className="h-10 border-none focus-visible:ring-0 font-medium text-sm bg-transparent placeholder:text-slate-400 p-0" 
+                            onChange={e => { setSearch(e.target.value); setPage(1); }}
+                            placeholder="Search state or code..."
+                            className="h-full border-none focus-visible:ring-0 text-sm font-medium bg-transparent p-0 placeholder:text-slate-400"
                         />
                     </div>
-                    <Button className="h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 rounded-xl transition-all shadow-sm flex items-center gap-2 group whitespace-nowrap">
-                        <Download size={18} /> Export <span className="hidden sm:inline">CSV</span>
-                    </Button>
+                    {/* Export */}
+                    <button
+                        onClick={handleExport}
+                        className="h-11 px-5 bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm rounded-xl flex items-center gap-2 transition-all shrink-0"
+                    >
+                        <Download size={16} /> Export CSV
+                    </button>
                 </div>
             </div>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white rounded-[2rem] overflow-hidden">
-                    <CardContent className="p-8 flex items-center gap-6">
-                        <div className="w-14 h-14 bg-pink-50 rounded-2xl flex items-center justify-center text-[#ec4899] shrink-0">
-                            <Users size={28} />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Total US Registered Nurses</p>
-                            <h3 className="text-3xl font-black text-slate-900 leading-none tracking-tight">3.2M+</h3>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white rounded-[2rem] overflow-hidden">
-                    <CardContent className="p-8 flex items-center gap-6">
-                        <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 shrink-0">
-                            <Activity size={28} />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Active Postings</p>
-                            <h3 className="text-3xl font-black text-slate-900 leading-none tracking-tight">184.2K</h3>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white rounded-[2rem] overflow-hidden">
-                    <CardContent className="p-8 flex items-center gap-6">
-                        <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shrink-0">
-                            <DollarSign size={28} />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Avg National Salary</p>
-                            <h3 className="text-3xl font-black text-slate-900 leading-none tracking-tight">$86,070</h3>
-                        </div>
-                    </CardContent>
-                </Card>
+            {/* ── KPI Cards ── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {[
+                    { icon: Users, bg: 'bg-blue-50', color: 'text-blue-600', label: 'Registered Nurses', value: '3.2M+' },
+                    { icon: Activity, bg: 'bg-green-50', color: 'text-green-600', label: 'Open Job Postings', value: '184.2K' },
+                    { icon: DollarSign, bg: 'bg-blue-50', color: 'text-blue-600', label: 'Avg National Salary', value: '$86,070' },
+                ].map((kpi, i) => (
+                    <Card key={i} className="border border-slate-100 shadow-sm bg-white rounded-2xl">
+                        <CardContent className="p-7 flex items-center gap-5">
+                            <div className={`w-12 h-12 ${kpi.bg} rounded-xl flex items-center justify-center shrink-0`}>
+                                <kpi.icon size={22} className={kpi.color} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">{kpi.label}</p>
+                                <p className="text-2xl font-semibold text-slate-900 leading-none mt-0.5">{kpi.value}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
 
-            {/* Table Section */}
-            <Card className="border-none shadow-[0_20px_50px_rgb(0,0,0,0.06)] bg-white rounded-[2.5rem] overflow-hidden">
+            {/* ── Table ── */}
+            <Card className="border border-slate-100 shadow-sm bg-white rounded-2xl overflow-hidden">
+
+                {/* Table header info */}
+                <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
+                    <p className="text-sm font-medium text-slate-900">
+                        Showing <span className="text-blue-600">{filtered.length}</span> states
+                        {search && <span className="text-slate-400 font-medium"> for "{search}"</span>}
+                    </p>
+                    <p className="text-xs font-medium text-slate-400">
+                        Page {page} of {totalPages || 1}
+                    </p>
+                </div>
+
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-slate-50/50">
-                                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100">State / Region</th>
-                                <th onClick={() => toggleSort('total')} className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100 cursor-pointer hover:text-pink-600 transition-colors">
-                                    <div className="flex items-center gap-2">Total Nurses <ArrowUpDown size={12} /></div>
+                            <tr className="bg-slate-50/60 border-b border-slate-100">
+                                <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">State</th>
+                                <th
+                                    onClick={() => toggleSort('total')}
+                                    className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-widest cursor-pointer hover:text-blue-600 transition-colors select-none"
+                                >
+                                    <div className="flex items-center gap-1.5">
+                                        Total Nurses
+                                        <ArrowUpDown size={11} className={sortField === 'total' ? 'text-blue-600' : ''} />
+                                    </div>
                                 </th>
-                                <th onClick={() => toggleSort('vacancies')} className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100 cursor-pointer hover:text-pink-600 transition-colors">
-                                    <div className="flex items-center gap-2">Active Vacancies <ArrowUpDown size={12} /></div>
+                                <th
+                                    onClick={() => toggleSort('vacancies')}
+                                    className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-widest cursor-pointer hover:text-blue-600 transition-colors select-none"
+                                >
+                                    <div className="flex items-center gap-1.5">
+                                        Open Jobs
+                                        <ArrowUpDown size={11} className={sortField === 'vacancies' ? 'text-blue-600' : ''} />
+                                    </div>
                                 </th>
-                                <th onClick={() => toggleSort('avgSalary')} className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100 cursor-pointer hover:text-pink-600 transition-colors">
-                                    <div className="flex items-center gap-2">Avg Annual Salary <ArrowUpDown size={12} /></div>
+                                <th
+                                    onClick={() => toggleSort('avgSalary')}
+                                    className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-widest cursor-pointer hover:text-blue-600 transition-colors select-none"
+                                >
+                                    <div className="flex items-center gap-1.5">
+                                        Avg Salary
+                                        <ArrowUpDown size={11} className={sortField === 'avgSalary' ? 'text-blue-600' : ''} />
+                                    </div>
                                 </th>
-                                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100">Trend</th>
-                                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100 text-right">Actions</th>
+                                <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Trend</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                            {filteredData.map((item) => (
-                                <tr key={item.id} className="group hover:bg-slate-50/70 transition-colors">
-                                    <td className="p-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center font-black text-slate-400 text-xs">
-                                                {item.code}
+                            {pageData.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="py-20 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center">
+                                                <MapPin size={24} className="text-slate-300" />
                                             </div>
-                                            <div>
-                                                <p className="font-bold text-slate-900 tracking-tight">{item.state}</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">United States</p>
-                                            </div>
+                                            <p className="text-sm font-medium text-slate-400">No states found</p>
                                         </div>
                                     </td>
-                                    <td className="p-6">
-                                        <span className="font-bold text-slate-700">{item.total.toLocaleString()}</span>
-                                    </td>
-                                    <td className="p-6">
-                                        <Badge className="bg-pink-50 text-[#ec4899] border-none font-black text-[9px] uppercase tracking-wider px-2 py-1 shadow-none">
-                                            {item.vacancies.toLocaleString()} OPEN
-                                        </Badge>
-                                    </td>
-                                    <td className="p-6">
-                                        <span className="font-black text-slate-900">${item.avgSalary.toLocaleString()}</span>
-                                    </td>
-                                    <td className="p-6">
-                                        {item.trend === 'up' && (
-                                            <div className="flex items-center gap-1.5 text-green-500 font-bold text-[10px] uppercase tracking-widest leading-none">
-                                                <ArrowUpRight size={14} /> Growing
-                                            </div>
-                                        )}
-                                        {item.trend === 'down' && (
-                                            <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase tracking-widest leading-none">
-                                                <ArrowDownRight size={14} /> Stable
-                                            </div>
-                                        )}
-                                        {item.trend === 'stable' && (
-                                            <div className="flex items-center gap-1.5 text-blue-400 font-bold text-[10px] uppercase tracking-widest leading-none">
-                                                <Activity size={14} /> Balance
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="p-6 text-right">
-                                        <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:text-[#ec4899] hover:bg-pink-50 rounded-xl opacity-0 group-hover:opacity-100 transition-all">
-                                            <ExternalLink size={18} />
-                                        </Button>
-                                    </td>
                                 </tr>
-                            ))}
+                            ) : pageData.map(item => {
+                                const t = trendLabel[item.trend];
+                                return (
+                                    <tr key={item.id} className="hover:bg-slate-50/60 transition-colors group">
+
+                                        {/* State */}
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center font-semibold text-slate-500 text-xs shrink-0">
+                                                    {item.code}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-slate-900 text-sm">{item.state}</p>
+                                                    <p className="text-[10px] text-slate-400 font-medium">United States</p>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {/* Total */}
+                                        <td className="px-6 py-4">
+                                            <span className="font-medium text-slate-800 text-sm">{item.total.toLocaleString()}</span>
+                                        </td>
+
+                                        {/* Vacancies */}
+                                        <td className="px-6 py-4">
+                                            <Badge className="bg-green-50 text-green-700 border-none font-medium text-[10px] px-2.5 py-1">
+                                                {item.vacancies.toLocaleString()} open
+                                            </Badge>
+                                        </td>
+
+                                        {/* Salary */}
+                                        <td className="px-6 py-4">
+                                            <span className="font-medium text-slate-900 text-sm">${item.avgSalary.toLocaleString()}</span>
+                                        </td>
+
+                                        {/* Trend */}
+                                        <td className="px-6 py-4">
+                                            <div className={`flex items-center gap-1.5 font-medium text-[11px] uppercase tracking-wider ${t.color}`}>
+                                                <t.Icon size={13} />
+                                                {t.label}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
-                
-                {filteredData.length === 0 && (
-                    <div className="p-20 text-center space-y-4">
-                        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto text-slate-200">
-                             <MapPin size={32} />
-                        </div>
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest italic">No matching states found</p>
-                    </div>
-                )}
 
-                <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Source: US Bureau of Labor Statistics (Mock)</p>
+                {/* ── Pagination ── */}
+                <div className="px-6 py-4 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
+                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">
+                        Source: US Bureau of Labor Statistics
+                    </p>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" className="h-8 text-[10px] font-bold uppercase tracking-widest rounded-lg border-slate-200 text-slate-500">Prev</Button>
-                        <Button variant="outline" size="sm" className="h-8 text-[10px] font-bold uppercase tracking-widest rounded-lg border-slate-200 text-slate-500">Next</Button>
+                        <button
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className="h-8 px-4 rounded-lg border border-slate-200 text-[10px] font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        >
+                            Prev
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                            .reduce<(number | '...')[]>((acc, p, idx, arr) => {
+                                if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push('...');
+                                acc.push(p);
+                                return acc;
+                            }, [])
+                            .map((p, i) => p === '...'
+                                ? <span key={`dot-${i}`} className="text-slate-300 text-xs px-1">…</span>
+                                : (
+                                    <button key={p} onClick={() => setPage(p as number)}
+                                        className={`h-8 w-8 rounded-lg text-[10px] font-semibold transition-all ${page === p ? 'bg-blue-600 text-white' : 'border border-slate-200 text-slate-500 hover:bg-slate-100'}`}>
+                                        {p}
+                                    </button>
+                                )
+                            )
+                        }
+                        <button
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            disabled={page === totalPages || totalPages === 0}
+                            className="h-8 px-4 rounded-lg border border-slate-200 text-[10px] font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        >
+                            Next
+                        </button>
                     </div>
                 </div>
             </Card>
 
-            <footer className="pt-10 text-center">
-                <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest italic">NurseFlex Data Engine v1.0.4</p>
-            </footer>
+            <p className="text-center text-[10px] font-medium text-slate-300 uppercase tracking-widest pb-4">
+                NurseFlex · US Nursing Data
+            </p>
         </div>
     );
 }

@@ -121,10 +121,10 @@ export default function ChatWidget({ initialParticipantId, onClose }: ChatWidget
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-16 h-16 bg-pink-600 text-white rounded-2xl shadow-2xl flex items-center justify-center hover:bg-pink-700 transition-all hover:scale-110 active:scale-95 z-[500]"
+        className="fixed bottom-6 right-6 w-16 h-16 bg-blue-600 text-white rounded-2xl shadow-2xl flex items-center justify-center hover:bg-blue-700 transition-all hover:scale-110 active:scale-95 z-[500]"
       >
         <MessageSquare size={28} />
-        <div className="absolute -top-1 -right-1 w-5 h-5 bg-pink-500 border-2 border-white rounded-full animate-pulse" />
+        <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 border-2 border-white rounded-full animate-pulse" />
       </button>
     );
   }
@@ -133,7 +133,7 @@ export default function ChatWidget({ initialParticipantId, onClose }: ChatWidget
     <div className="fixed bottom-6 right-6 w-[400px] h-[600px] bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden z-[500] animate-in slide-in-from-bottom-10 duration-500">
       
       {/* Header */}
-      <div className="p-6 bg-pink-600 text-white flex items-center justify-between">
+      <div className="p-6 bg-blue-600 text-white flex items-center justify-between">
         <div className="flex items-center gap-3">
           {selectedConv ? (
              <button onClick={() => setSelectedConv(null)} className="mr-2 hover:bg-white/10 p-1 rounded-lg">
@@ -153,19 +153,19 @@ export default function ChatWidget({ initialParticipantId, onClose }: ChatWidget
 
       {loading ? (
         <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="animate-spin text-pink-600" />
+          <Loader2 className="animate-spin text-blue-600" />
         </div>
       ) : selectedConv ? (
         /* Chat View */
         <>
           <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50">
             {msgLoading ? (
-               <div className="flex justify-center p-4"><Loader2 className="animate-spin text-pink-200" /></div>
+               <div className="flex justify-center p-4"><Loader2 className="animate-spin text-blue-200" /></div>
             ) : messages.length > 0 ? messages.map((m) => {
               const isMe = m.senderId === currentUser?.id;
               return (
                 <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] ${isMe ? 'bg-pink-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-slate-800 border border-slate-100 rounded-2xl rounded-tl-none'} p-3 shadow-sm`}>
+                  <div className={`max-w-[80%] ${isMe ? 'bg-blue-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-slate-800 border border-slate-100 rounded-2xl rounded-tl-none'} p-3 shadow-sm`}>
                     <p className="text-sm font-bold">{m.content}</p>
                     <div className={`text-[8px] mt-1 font-black uppercase text-right opacity-60`}>
                       {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -188,9 +188,9 @@ export default function ChatWidget({ initialParticipantId, onClose }: ChatWidget
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type message..."
-              className="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-pink-100"
+              className="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100"
             />
-            <button type="submit" className="w-12 h-12 bg-pink-600 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all disabled:opacity-50" disabled={!newMessage.trim()}>
+            <button type="submit" className="w-12 h-12 bg-blue-600 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all disabled:opacity-50" disabled={!newMessage.trim()}>
               <Send size={18} />
             </button>
           </form>
@@ -207,7 +207,7 @@ export default function ChatWidget({ initialParticipantId, onClose }: ChatWidget
                         onClick={() => setSelectedConv(conv)}
                         className="w-full flex items-center gap-4 p-4 rounded-3xl hover:bg-slate-50 transition-all text-left group"
                     >
-                        <div className="w-10 h-10 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center font-black italic shadow-sm group-hover:bg-pink-600 group-hover:text-white transition-all">
+                        <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-black italic shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all">
                             {(other?.profile?.name || other?.email || '?')[0].toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">

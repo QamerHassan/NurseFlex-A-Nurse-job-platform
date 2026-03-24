@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Patch, Param, UseGuards, Req, UnauthorizedException } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { NotificationsService } from './notifications.service';
 
@@ -9,6 +9,7 @@ export class NotificationsController {
 
     @Get()
     async getMyNotifications(@Req() req) {
+        if (!req.user) throw new UnauthorizedException('User not found in request');
         const userId = req.user.userId || req.user.id;
         return this.notificationsService.getMyNotifications(userId);
     }
@@ -20,6 +21,7 @@ export class NotificationsController {
 
     @Patch('read-all')
     async readAll(@Req() req) {
+        if (!req.user) throw new UnauthorizedException('User not found in request');
         const userId = req.user.userId || req.user.id;
         return this.notificationsService.markAllAsRead(userId);
     }

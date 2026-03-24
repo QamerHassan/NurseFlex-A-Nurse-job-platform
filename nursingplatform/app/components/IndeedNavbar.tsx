@@ -26,8 +26,8 @@ export default function IndeedNavbar() {
         <div className="flex items-center gap-8">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#ec4899] rounded-lg flex items-center justify-center text-white font-black text-lg">N</div>
-            <span className="text-xl font-bold text-[#ec4899] tracking-tight hidden sm:block">NurseFlex</span>
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black text-lg">N</div>
+            <span className="text-xl font-bold text-blue-600 tracking-tight hidden sm:block">NurseFlex</span>
           </Link>
 
           {/* Primary Nav */}
@@ -38,7 +38,7 @@ export default function IndeedNavbar() {
                 href={link.href}
                 className={`px-4 py-6 text-sm font-bold border-b-4 transition-colors ${
                   link.active 
-                  ? 'border-[#ec4899] text-[#ec4899]' 
+                  ? 'border-blue-600 text-blue-600' 
                   : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
@@ -65,7 +65,7 @@ export default function IndeedNavbar() {
           <div className="flex items-center gap-4">
              <ProfileDropdown email={session?.user?.email || undefined} />
              <div className="hidden xl:block h-6 w-px bg-slate-200 mx-2"></div>
-             <Link href="/business" className="hidden xl:block text-sm font-bold text-slate-600 hover:text-[#ec4899] hover:underline">
+             <Link href="/business" className="hidden xl:block text-sm font-bold text-slate-600 hover:text-blue-600 hover:underline">
                 Employers / Post Job
              </Link>
           </div>

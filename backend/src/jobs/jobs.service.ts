@@ -1,5 +1,6 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { JobStatus } from '@prisma/client';
 
 @Injectable()
 export class JobsService {
@@ -75,33 +76,54 @@ export class JobsService {
         throw new ForbiddenException('User profile not found. Please complete your profile first.');
       }
 
-      // 2. Get Active Subscription
+      // 2. Count how many jobs this business has already posted
+      const existingJobCount = await this.prisma.job.count({
+        where: { postedById },
+      });
+
+      // 3. If it's their first job, allow it for FREE (no subscription needed)
+      if (existingJobCount === 0) {
+        const prismaData = {
+          title: data.title,
+          description: data.description,
+          salary: data.salary,
+          location: data.location === 'Facility Location' ? (user.profile.location || 'Remote') : (data.location || user.profile.location || 'Remote'),
+          hospital: user.profile.name || user.name || 'Unknown Facility',
+          type: data.type || 'Full-time',
+          postedById,
+          status: JobStatus.APPROVED
+        };
+        return this.prisma.job.create({ data: prismaData });
+      }
+
+      // 4. For 2nd job onwards: check for active subscription
       const subscription = await this.prisma.businessSubscription.findFirst({
         where: { userId: postedById, status: 'ACTIVE' },
         include: { tier: true }
       });
 
       if (!subscription) {
-        throw new ForbiddenException('Aapka koi active subscription nahi mila. Please plan subscribe karein.');
+        throw new ForbiddenException('SUBSCRIPTION_REQUIRED');
       }
 
-      // 3. Check Limit
+      // 5. Check subscription job limit
       if (subscription.jobsPostedCount >= subscription.tier.jobsLimit) {
-        throw new ForbiddenException(`Aapki limit khatam ho chuki hai (${subscription.tier.jobsLimit} jobs). Please upgrade karein.`);
+        throw new ForbiddenException(`LIMIT_REACHED:${subscription.tier.jobsLimit}`);
       }
 
-      // 4. Sanitize and Populate Data for Prisma
+      // 6. Sanitize and Populate Data for Prisma
       const prismaData = {
         title: data.title,
         description: data.description,
         salary: data.salary,
-        location: data.location === "Facility Location" ? (user.profile.location || "Remote") : (data.location || user.profile.location || "Remote"),
-        hospital: user.profile.name || user.name || "Unknown Facility",
-        type: data.type || "Full-time",
-        postedById: postedById
+        location: data.location === 'Facility Location' ? (user.profile.location || 'Remote') : (data.location || user.profile.location || 'Remote'),
+        hospital: user.profile.name || user.name || 'Unknown Facility',
+        type: data.type || 'Full-time',
+        postedById,
+        status: JobStatus.APPROVED
       };
 
-      // 5. Create Job and Increment Count in Transaction
+      // 7. Create Job and Increment Count in Transaction
       const [job] = await this.prisma.$transaction([
         this.prisma.job.create({ data: prismaData }),
         this.prisma.businessSubscription.update({
@@ -112,9 +134,21 @@ export class JobsService {
 
       return job;
     } catch (err) {
-      console.error("❌ JobsService.create Error:", err);
+      console.error('❌ JobsService.create Error:', err);
       throw err;
     }
+  }
+
+  async getMyJobCount(businessId: string) {
+    const count = await this.prisma.job.count({ where: { postedById: businessId } });
+    const subscription = await this.prisma.businessSubscription.findFirst({
+      where: { userId: businessId, status: 'ACTIVE' },
+    });
+    return {
+      count,
+      hasFreePost: count === 0,
+      hasSubscription: !!subscription,
+    };
   }
 
   async findByBusiness(businessId: string) {

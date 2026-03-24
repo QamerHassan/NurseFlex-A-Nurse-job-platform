@@ -1,4 +1,7 @@
-import { Controller, Get, Patch, Post, Body, UseGuards, Req, Param } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Body, UseGuards, Req, Param, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProfileService } from './profile.service';
 
@@ -36,5 +39,39 @@ export class ProfileController {
   @Post('onboard')
   async onboard(@Req() req, @Body() body: any) {
     return this.profileService.completeOnboarding(req.user.userId, body);
+  }
+
+  // Profile picture upload karne ke liye: POST http://localhost:3001/profile/upload-picture
+  @Post('upload-picture')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, `profile-${uniqueSuffix}${extname(file.originalname)}`);
+      },
+    }),
+    fileFilter: (req, file, cb) => {
+      if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+        return cb(new BadRequestException('Only image files are allowed!'), false);
+      }
+      cb(null, true);
+    },
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  }))
+  async uploadProfilePicture(@Req() req, @UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Image file is required');
+    }
+    
+    const imageUrl = `/uploads/${file.filename}`;
+    
+    // Auto-update profile picture in database
+    await this.profileService.updateProfile(req.user.userId, { profilePicture: imageUrl });
+
+    return { 
+      message: 'Profile picture uploaded successfully',
+      url: imageUrl
+    };
   }
 }

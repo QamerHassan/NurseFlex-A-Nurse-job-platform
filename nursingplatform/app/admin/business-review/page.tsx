@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { 
-    Loader2, ShieldCheck, Mail, 
-    Building2, CheckCircle, XCircle, 
+import {
+    Loader2, ShieldCheck, Mail,
+    Building2, CheckCircle, XCircle,
     FileText, ExternalLink, Gem,
-    ShieldAlert, Activity, ChevronRight, 
+    ShieldAlert, Activity, ChevronRight,
     X, Check, Download, AlertCircle,
     Search, Filter, MoreVertical,
     MapPin, Globe, CreditCard
@@ -73,8 +73,8 @@ export default function BusinessReviewPortal() {
     if (loading) return (
         <div className="flex h-[60vh] flex-col items-center justify-center space-y-6">
             <div className="relative">
-                <div className="absolute inset-0 bg-pink-500 blur-2xl opacity-10 animate-pulse"></div>
-                <Loader2 className="animate-spin text-pink-500 relative z-10" size={48} />
+                <div className="absolute inset-0 bg-blue-500 blur-2xl opacity-10 animate-pulse"></div>
+                <Loader2 className="animate-spin text-blue-600 relative z-10" size={48} />
             </div>
             <p className="text-sm font-medium text-slate-400">Loading businesses...</p>
         </div>
@@ -89,11 +89,11 @@ export default function BusinessReviewPortal() {
                     <p className="text-sm text-slate-500 font-medium">Verify healthcare provider accounts and profiles.</p>
                 </div>
 
-                <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm w-full md:w-96 transition-all focus-within:ring-2 focus-within:ring-pink-500/10 focus-within:border-pink-500/30">
+                <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm w-full md:w-96 transition-all focus-within:ring-2 focus-within:ring-blue-500/10 focus-within:border-blue-500/30">
                     <Search className="text-slate-400" size={18} />
-                    <Input 
-                        placeholder="Search businesses..." 
-                        className="h-10 border-none focus-visible:ring-0 font-medium text-sm bg-transparent placeholder:text-slate-400 p-0" 
+                    <Input
+                        placeholder="Search businesses..."
+                        className="h-10 border-none focus-visible:ring-0 font-medium text-sm bg-transparent placeholder:text-slate-400 p-0"
                     />
                 </div>
             </header>
@@ -104,18 +104,18 @@ export default function BusinessReviewPortal() {
                     {requests.length > 0 ? (
                         <div className="grid gap-4">
                             {requests.map((biz: any) => (
-                                <Card 
+                                <Card
                                     key={biz.id}
                                     onClick={() => setSelectedBusiness(biz)}
-                                    className={`group cursor-pointer border border-slate-100 shadow-sm transition-all duration-300 rounded-xl overflow-hidden ${selectedBusiness?.id === biz.id ? 'ring-2 ring-pink-500/20 bg-white' : 'bg-white hover:bg-slate-50'}`}
+                                    className={`group cursor-pointer border border-slate-100 shadow-sm transition-all duration-300 rounded-xl overflow-hidden ${selectedBusiness?.id === biz.id ? 'ring-2 ring-blue-500/20 bg-white' : 'bg-white hover:bg-slate-50'}`}
                                 >
                                     <CardContent className="p-6 flex items-center justify-between gap-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center text-white text-lg font-bold group-hover:bg-pink-600 transition-colors">
+                                            <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center text-white text-lg font-bold group-hover:bg-blue-600 transition-colors">
                                                 {biz.name[0].toUpperCase()}
                                             </div>
                                             <div className="space-y-0.5">
-                                                <h3 className="font-bold text-slate-900 group-hover:text-pink-600 transition-colors">{biz.name}</h3>
+                                                <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{biz.name}</h3>
                                                 <p className="text-[10px] font-medium text-slate-400 lowercase">{biz.email}</p>
                                             </div>
                                         </div>
@@ -143,7 +143,7 @@ export default function BusinessReviewPortal() {
                                 <h3 className="text-lg font-bold text-slate-900">All Caught Up</h3>
                                 <p className="text-sm text-slate-400 font-medium">No pending business verifications</p>
                             </div>
-                            <Button onClick={fetchRequests} variant="ghost" className="text-pink-600 font-bold uppercase text-[10px] tracking-widest">Refresh</Button>
+                            <Button onClick={fetchRequests} variant="ghost" className="text-green-600 font-bold uppercase text-[10px] tracking-widest">Refresh</Button>
                         </div>
                     )}
                 </div>
@@ -160,8 +160,8 @@ export default function BusinessReviewPortal() {
                             <div className="flex flex-col h-full animate-in slide-in-from-right-8 duration-500">
                                 <CardHeader className="p-8 pb-4 border-b border-white/5 relative bg-white/[0.02]">
                                     <div className="absolute top-6 right-6">
-                                        <Button 
-                                            variant="ghost" 
+                                        <Button
+                                            variant="ghost"
                                             size="icon"
                                             onClick={() => setSelectedBusiness(null)}
                                             className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
@@ -175,7 +175,7 @@ export default function BusinessReviewPortal() {
                                         </div>
                                         <div className="space-y-1">
                                             <h2 className="text-xl font-bold text-white leading-tight">{selectedBusiness.name}</h2>
-                                            <Badge className="bg-pink-600 text-white font-bold text-[9px] uppercase tracking-wider px-2 py-0.5 border-none">Healthcare Business</Badge>
+                                            <Badge className="bg-blue-600 text-white font-bold text-[9px] uppercase tracking-wider px-2 py-0.5 border-none">Healthcare Business</Badge>
                                         </div>
                                     </div>
                                 </CardHeader>
@@ -218,15 +218,15 @@ export default function BusinessReviewPortal() {
 
                                 <CardFooter className="p-8 pt-0 mt-auto bg-white/[0.01] border-t border-white/5">
                                     <div className="grid grid-cols-2 gap-4 w-full pt-6">
-                                        <Button 
+                                        <Button
                                             onClick={() => handleApprove(selectedBusiness.id)}
                                             disabled={actionLoading !== null}
-                                            className="h-12 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg transition-all"
+                                            className="h-12 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg transition-all"
                                         >
                                             {actionLoading === 'APPROVE' ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle size={18} />}
                                             Approve
                                         </Button>
-                                        <Button 
+                                        <Button
                                             onClick={() => handleReject(selectedBusiness.id)}
                                             disabled={actionLoading !== null}
                                             className="h-12 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg transition-all"

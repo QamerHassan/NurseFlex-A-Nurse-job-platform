@@ -5,7 +5,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 
-const handler = NextAuth({
+export const authOptions = {
     // Prisma adapter stores Google users in MongoDB automatically
     adapter: PrismaAdapter(prisma),
 
@@ -97,17 +97,55 @@ const handler = NextAuth({
                     return null;
                 }
             }
+        }),
+        CredentialsProvider({
+            id: "credentials",
+            name: "Email/Password",
+            credentials: {
+                email: { label: "Email", type: "email" },
+                password: { label: "Password", type: "password" }
+            },
+            async authorize(credentials) {
+                if (!credentials?.email || !credentials?.password) return null;
+
+                try {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001'}/auth/login`, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            email: credentials.email,
+                            password: credentials.password
+                        }),
+                        headers: { "Content-Type": "application/json" }
+                    });
+
+                    const data = await res.json();
+                    if (!res.ok || !data.user) {
+                        return null;
+                    }
+
+                    return {
+                        id: data.user.id,
+                        email: data.user.email,
+                        name: data.user.name || data.user.email.split('@')[0],
+                        role: data.user.role,
+                        status: data.user.status || 'PENDING',
+                    };
+                } catch (error) {
+                    console.error("❌ NextAuth: Manual Login Error", error);
+                    return null;
+                }
+            }
         })
     ],
     secret: process.env.NEXTAUTH_SECRET,
 
     // Use "jwt" so we can embed role/status into the token
     session: {
-        strategy: "jwt",
+        strategy: "jwt" as const,
     },
 
     callbacks: {
-        async signIn({ user, account }) {
+        async signIn({ user, account }: { user: any, account: any }) {
             if (account?.provider === "google" || account?.provider === "google-one-tap") {
                 try {
                     if (!user.email) return false;
@@ -123,16 +161,14 @@ const handler = NextAuth({
             return true;
         },
 
-        async redirect({ url, baseUrl }) {
+        async redirect({ url, baseUrl }: { url: string, baseUrl: string }) {
             return url.startsWith(baseUrl) ? url : baseUrl;
         },
 
-        async jwt({ token, user, account }) {
+        async jwt({ token, user, account }: { token: any, user?: any, account?: any }) {
             if (account && user) {
                 token.id = user.id;
-                // @ts-ignore
                 token.role = user.role || "NURSE";
-                // @ts-ignore
                 token.status = user.status || "PENDING";
             }
 
@@ -153,13 +189,11 @@ const handler = NextAuth({
             return token;
         },
 
-        async session({ session, token }) {
+        async session({ session, token }: { session: any, token: any }) {
             if (session?.user) {
-                // @ts-ignore
                 session.user.id = token.id;
-                // @ts-ignore
+                session.user.email = token.email;
                 session.user.role = token.role;
-                // @ts-ignore
                 session.user.status = token.status;
             }
             return session;
@@ -167,7 +201,7 @@ const handler = NextAuth({
     },
 
     events: {
-        async createUser({ user }) {
+        async createUser({ user }: { user: any }) {
             try {
                 const existingProfile = await prisma.profile.findUnique({
                     where: { userId: user.id }
@@ -191,6 +225,8 @@ const handler = NextAuth({
         error: "/auth/login",
     },
     debug: process.env.NODE_ENV === "development",
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

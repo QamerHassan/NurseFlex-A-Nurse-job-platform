@@ -86,7 +86,7 @@ export default function BusinessNotificationsPage() {
           <button 
             onClick={markAllRead}
             disabled={notifications.length === 0}
-            className="h-14 px-6 rounded-2xl text-pink-600 hover:bg-pink-50 font-bold text-sm disabled:opacity-50 transition-all"
+            className="h-14 px-6 rounded-2xl text-blue-600 hover:bg-blue-50 font-bold text-sm disabled:opacity-50 transition-all"
           >
             Mark all as read
           </button>
@@ -123,19 +123,19 @@ export default function BusinessNotificationsPage() {
                         return (
                           <Card 
                               key={n.id} 
-                              className={`group cursor-pointer border-none shadow-sm hover:shadow-2xl hover:shadow-pink-100/50 bg-white rounded-[2.5rem] p-8 transition-all duration-300 ${!n.isRead ? 'ring-2 ring-pink-500/10' : 'opacity-60'}`}
+                              className={`group cursor-pointer border-none shadow-sm hover:shadow-2xl hover:shadow-blue-100/50 bg-white rounded-[2.5rem] p-8 transition-all duration-300 ${!n.isRead ? 'ring-2 ring-blue-500/10' : 'opacity-60'}`}
                           >
                               <div className="flex items-center gap-8">
-                                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-lg transition-transform group-hover:scale-110 duration-500 ${!n.isRead ? 'bg-slate-900 text-white shadow-slate-200 group-hover:bg-pink-600' : 'bg-slate-50 text-slate-300'}`}>
+                                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-lg transition-transform group-hover:scale-110 duration-500 ${!n.isRead ? 'bg-slate-900 text-white shadow-slate-200 group-hover:bg-blue-600' : 'bg-slate-50 text-slate-300'}`}>
                                       <Icon size={28} className={!n.isRead && n.type === 'ISSUE_REPORT' ? 'fill-red-400' : ''} />
                                   </div>
                                   <div className="flex-1 min-w-0">
                                       <div className="flex justify-between items-start mb-2">
                                           <div className="space-y-1">
-                                              <h3 className="text-xl font-bold text-slate-900 group-hover:text-pink-600 transition-colors tracking-tight">{n.title}</h3>
+                                              <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight">{n.title}</h3>
                                               <p className="text-[10px] font-bold text-slate-300 uppercase tracking-tight">{formatTime(n.createdAt)}</p>
                                           </div>
-                                          {!n.isRead && <div className="w-2.5 h-2.5 bg-pink-600 rounded-full shadow-xl shadow-pink-500/50"></div>}
+                                          {!n.isRead && <div className="w-2.5 h-2.5 bg-blue-600 rounded-full shadow-xl shadow-blue-500/50"></div>}
                                       </div>
                                       <p className="text-slate-500 font-bold text-sm leading-relaxed max-w-2xl">{n.message}</p>
                                   </div>
@@ -158,7 +158,7 @@ export default function BusinessNotificationsPage() {
                     <p className="text-slate-500 font-medium text-sm mb-12 max-w-xs mx-auto leading-relaxed">
                         Your notification feed is empty. We'll alert you here when you receive new applications or messages.
                     </p>
-                    <Button asChild size="lg" className="h-16 px-12 rounded-2xl bg-slate-900 hover:bg-pink-600 font-bold shadow-2xl transition-all">
+                    <Button asChild size="lg" className="h-16 px-12 rounded-2xl bg-slate-900 hover:bg-blue-600 font-bold shadow-2xl transition-all">
                         <Link href="/business/dashboard">Return to Dashboard</Link>
                     </Button>
                 </Card>

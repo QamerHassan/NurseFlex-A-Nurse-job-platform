@@ -78,13 +78,13 @@ export default function SponsorJobPage() {
             <header className="flex flex-col md:flex-row justify-between items-end gap-12 border-b border-slate-100 pb-16">
                 <div className="text-center md:text-left space-y-6">
                     <div className="flex items-center gap-6 justify-center md:justify-start mb-2">
-                        <h1 className="text-5xl font-black text-slate-900 tracking-tighter italic uppercase underline decoration-pink-500/20 underline-offset-[12px] decoration-8">Sponsor Your Job</h1>
-                        <Badge className="bg-pink-600 font-black text-[10px] uppercase tracking-[0.4em] px-4 py-1.5 shadow-xl shadow-pink-100 italic">Step 08</Badge>
+                        <h1 className="text-5xl font-black text-slate-900 tracking-tighter italic uppercase underline decoration-blue-500/20 underline-offset-[12px] decoration-8">Sponsor Your Job</h1>
+                        <Badge className="bg-blue-600 font-black text-[10px] uppercase tracking-[0.4em] px-4 py-1.5 shadow-xl shadow-blue-100 italic">Step 08</Badge>
                     </div>
                     <p className="text-slate-400 font-bold text-sm uppercase tracking-[0.3em] max-w-2xl">Boost your job posting to reach more qualified healthcare professionals</p>
                 </div>
                 <div className="hidden lg:flex items-center gap-4 bg-slate-50 p-4 rounded-3xl border border-slate-100 shadow-sm">
-                    <ShieldCheck className="text-pink-600" size={24} />
+                    <ShieldCheck className="text-blue-600" size={24} />
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-tight">Secure Payment<br/>Processing Certified</p>
                 </div>
             </header>
@@ -92,14 +92,14 @@ export default function SponsorJobPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                 {/* Protocol Info */}
                 <aside className="lg:col-span-3 space-y-8">
-                    <Card className="border-none shadow-2xl shadow-pink-50 bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden group h-full">
+                    <Card className="border-none shadow-2xl shadow-blue-50 bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden group h-full">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
                         <div className="relative z-10 space-y-8">
-                            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-pink-400 border border-white/20 shadow-2xl transition-transform group-hover:rotate-12 group-hover:scale-110">
+                            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-blue-400 border border-white/20 shadow-2xl transition-transform group-hover:rotate-12 group-hover:scale-110">
                                 <Zap size={32} />
                             </div>
                             <div className="space-y-4">
-                                <h3 className="text-lg font-black uppercase tracking-widest italic text-pink-400">Boost Visibility</h3>
+                                <h3 className="text-lg font-black uppercase tracking-widest italic text-blue-400">Boost Visibility</h3>
                                 <p className="text-[11px] font-bold text-slate-400 leading-relaxed uppercase tracking-tight">
                                     "Sponsoring your job helps it reach more qualified healthcare professionals and fill your opening faster."
                                 </p>
@@ -116,7 +116,7 @@ export default function SponsorJobPage() {
                 <div className="lg:col-span-9 space-y-12">
                     {tiersLoading ? (
                         <div className="flex flex-col items-center justify-center py-32 space-y-6">
-                            <Loader2 className="animate-spin text-pink-600" size={64} />
+                            <Loader2 className="animate-spin text-blue-600" size={64} />
                             <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300">Loading promotion options...</p>
                         </div>
                     ) : (
@@ -134,7 +134,7 @@ export default function SponsorJobPage() {
                                     >
                                         {tier.isFeatured && (
                                             <div className="absolute top-8 right-8">
-                                                <Badge className="bg-pink-600 font-black text-[8px] uppercase tracking-widest border-none px-3 italic">Best Value</Badge>
+                                                <Badge className="bg-blue-600 font-black text-[8px] uppercase tracking-widest border-none px-3 italic">Best Value</Badge>
                                             </div>
                                         )}
                                         
@@ -158,7 +158,7 @@ export default function SponsorJobPage() {
 
                                             <div className="space-y-5">
                                                 <div className="flex items-start gap-4">
-                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border ${isSelected ? 'border-pink-500 bg-pink-500 text-slate-900' : 'border-slate-100 bg-slate-50 text-pink-600'}`}>
+                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border ${isSelected ? 'border-blue-500 bg-blue-500 text-slate-900' : 'border-slate-100 bg-slate-50 text-blue-600'}`}>
                                                         <Check size={12} strokeWidth={4} />
                                                     </div>
                                                     <p className={`text-[11px] font-black uppercase tracking-tight leading-tight ${isSelected ? 'text-slate-200' : 'text-slate-600'}`}>
@@ -182,7 +182,7 @@ export default function SponsorJobPage() {
                                         </CardContent>
 
                                         <CardFooter className="p-10 pt-0 mt-auto">
-                                            <div className={`w-full h-16 rounded-[1.5rem] border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-pink-600 border-pink-600 text-white shadow-xl shadow-pink-500/20' : 'border-slate-50 bg-slate-50 text-slate-300 group-hover:border-pink-100 group-hover:bg-pink-50 group-hover:text-pink-600'}`}>
+                                            <div className={`w-full h-16 rounded-[1.5rem] border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-500/20' : 'border-slate-50 bg-slate-50 text-slate-300 group-hover:border-blue-100 group-hover:bg-blue-50 group-hover:text-blue-600'}`}>
                                                 <span className="text-[10px] font-black uppercase tracking-widest italic">{isSelected ? 'TIER SELECTED' : 'SELECT TIER'}</span>
                                             </div>
                                         </CardFooter>
@@ -206,7 +206,7 @@ export default function SponsorJobPage() {
                         <Button 
                             onClick={handleSubmit}
                             disabled={loading || !selectedTierId}
-                            className="h-20 px-16 rounded-[2.5rem] bg-slate-900 hover:bg-pink-600 text-white font-black uppercase tracking-tighter italic text-2xl shadow-2xl transition-all active:scale-95 group"
+                            className="h-20 px-16 rounded-[2.5rem] bg-slate-900 hover:bg-blue-600 text-white font-black uppercase tracking-tighter italic text-2xl shadow-2xl transition-all active:scale-95 group"
                         >
                             {loading ? (
                                 <div className="flex items-center gap-4">

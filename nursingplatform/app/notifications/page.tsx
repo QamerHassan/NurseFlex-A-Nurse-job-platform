@@ -75,9 +75,9 @@ export default function NotificationsPage() {
                             {notifications.map((n) => (
                                 <div 
                                     key={n.id} 
-                                    className={`py-6 flex gap-6 transition-all group ${n.isRead ? 'opacity-60' : 'bg-pink-50/10'}`}
+                                    className={`py-6 flex gap-6 transition-all group ${n.isRead ? 'opacity-60' : 'bg-blue-50/10'}`}
                                 >
-                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 border transition-all ${n.isRead ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-pink-50 border-pink-100 text-[#2557a7]'}`}>
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 border transition-all ${n.isRead ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-blue-50 border-blue-100 text-blue-600'}`}>
                                         {n.type === 'MESSAGE' ? <MessageSquare size={20} /> : <Bell size={20} />}
                                     </div>
                                     <div className="flex-1 pr-4">
@@ -87,7 +87,7 @@ export default function NotificationsPage() {
                                         </div>
                                         <p className="text-sm text-slate-600 leading-relaxed mb-3">{n.message}</p>
                                         <div className="flex gap-4">
-                                            <Button variant="link" className="text-xs font-bold text-[#ec4899] p-0 h-auto">View Details</Button>
+                                            <Button variant="link" className="text-xs font-bold text-blue-600 p-0 h-auto">View Details</Button>
                                             {!n.isRead && <Button variant="link" className="text-xs font-bold text-slate-400 p-0 h-auto hover:text-slate-600">Mark as read</Button>}
                                         </div>
                                     </div>
@@ -103,7 +103,7 @@ export default function NotificationsPage() {
                             <p className="text-slate-500 text-sm mb-8 max-w-xs mx-auto">
                                 Check back later for new updates and job alerts.
                             </p>
-                            <Button asChild className="bg-pink-600 hover:bg-pink-700 h-12 px-8 rounded-lg font-bold text-white shadow-none">
+                            <Button asChild className="bg-blue-600 hover:bg-blue-700 h-12 px-8 rounded-lg font-bold text-white shadow-none">
                                 <Link href="/dashboard">Return to jobs</Link>
                             </Button>
                         </div>

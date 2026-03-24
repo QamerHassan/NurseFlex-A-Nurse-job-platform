@@ -3,8 +3,17 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import Navbar from '@/app/components/Navbar';
-import { Loader2, ArrowLeft, Calendar, User, Tag, Eye } from 'lucide-react';
+import { Loader2, ArrowLeft, Calendar, User, Tag, Eye, Clock, BookOpen } from 'lucide-react';
 import api from '@/lib/api';
+
+// ─── Strip base64 blobs accidentally embedded in text ────────────────────────
+function cleanText(raw: string): string {
+    if (!raw) return '';
+    return raw
+        .replace(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g, '')
+        .replace(/\[object Object\]/g, '')
+        .trim();
+}
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -13,15 +22,24 @@ export default function BlogDetailPage() {
   const [blog, setBlog] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [readProgress, setReadProgress] = useState(0);
+
+  // ── Reading progress bar ──────────────────────────────────────────────────
+  useEffect(() => {
+    const handleScroll = () => {
+      const el = document.documentElement;
+      const scrolled = el.scrollTop;
+      const total = el.scrollHeight - el.clientHeight;
+      setReadProgress(total > 0 ? (scrolled / total) * 100 : 0);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchBlog = async () => {
-      if (!id || id === 'undefined') {
-        setLoading(false);
-        return;
-      }
+      if (!id || id === 'undefined') { setLoading(false); return; }
       try {
-        // Assume API has GET /blogs/:id that returns a single blog
         const res = await api.get(`/blogs/${id}`);
         setBlog(res.data);
       } catch (err) {
@@ -31,149 +49,299 @@ export default function BlogDetailPage() {
         setLoading(false);
       }
     };
-
     fetchBlog();
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex flex-col items-center justify-center text-[#ec4899] mt-20">
-          <Loader2 className="w-12 h-12 animate-spin mb-4" />
-          <p className="text-xs font-black uppercase tracking-widest text-slate-400">Loading Insight...</p>
+  // ── Loading ───────────────────────────────────────────────────────────────
+  if (loading) return (
+    <div className="min-h-screen bg-white font-sans flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 mt-20">
+        <div style={{
+          width: 52, height: 52, borderRadius: 16,
+          background: 'linear-gradient(135deg, #14b8a6, #10b981)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 8px 24px rgba(20,184,166,0.35)',
+          animation: 'pulse 1.5s ease infinite'
+        }}>
+          <BookOpen size={24} style={{ color: 'white' }} />
+        </div>
+        <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+          Loading Article…
+        </p>
+      </div>
+      <style>{`@keyframes pulse{0%,100%{opacity:0.7;transform:scale(0.97)}50%{opacity:1;transform:scale(1)}}`}</style>
+    </div>
+  );
+
+  // ── Error ─────────────────────────────────────────────────────────────────
+  if (error || !blog) return (
+    <div className="min-h-screen bg-white font-sans flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex flex-col items-center justify-center px-6 mt-20">
+        <div style={{ background: 'white', padding: '48px', borderRadius: 28, textAlign: 'center', border: '1px solid rgba(20,184,166,0.1)', boxShadow: '0 8px 40px rgba(0,0,0,0.06)', maxWidth: 480, width: '100%' }}>
+          <p style={{ fontSize: 72, fontWeight: 800, color: '#f1f5f9', marginBottom: 16, lineHeight: 1 }}>404</p>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 20 }}>{error || "Article Not Found"}</h2>
+          <Link href="/blogs" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#14b8a6', textDecoration: 'none', padding: '10px 24px', borderRadius: 12, background: 'rgba(20,184,166,0.08)', border: '1px solid rgba(20,184,166,0.2)' }}>
+            <ArrowLeft size={15} /> Back to Articles
+          </Link>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (error || !blog) {
-    return (
-      <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex flex-col items-center justify-center px-6 mt-20">
-          <div className="bg-white p-12 rounded-[3rem] text-center border border-slate-100 shadow-xl max-w-lg w-full">
-            <h1 className="text-6xl font-black text-slate-200 mb-6 italic">404</h1>
-            <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-4">{error || "Article Not Found"}</h2>
-            <Link href="/blogs" className="inline-flex items-center gap-2 text-sm font-bold text-[#ec4899] uppercase tracking-widest hover:gap-4 transition-all">
-              <ArrowLeft size={16} /> Back to Insights
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // ── Read time estimate ────────────────────────────────────────────────────
+  const wordCount = [
+    blog.content || '',
+    ...(Array.isArray(blog.sections) ? blog.sections.filter((s: any) => s.type === 'text').map((s: any) => s.content || '') : [])
+  ].join(' ').split(/\s+/).filter(Boolean).length;
+  const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
+  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-pink-100">
+    <div style={{ minHeight: '100vh', background: 'white', fontFamily: "'DM Sans', system-ui, sans-serif", color: '#0f172a' }}>
       <Navbar />
 
-      <main className="pt-32 pb-20 px-6 max-w-4xl mx-auto min-h-screen">
-        <Link href="/blogs" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#ec4899] transition-colors mb-12 group">
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Career Advice
-        </Link>
+      {/* ── Reading progress bar ── */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, zIndex: 999,
+        height: 3, width: `${readProgress}%`,
+        background: 'linear-gradient(90deg, #2563eb, #14b8a6, #10b981)',
+        transition: 'width 0.1s linear',
+        boxShadow: '0 0 8px rgba(20,184,166,0.5)',
+      }} />
 
-        {blog.category && (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-pink-50 text-[#ec4899] rounded-lg text-[10px] font-black uppercase tracking-widest mb-6 border border-pink-100 shadow-sm">
-            <Tag size={12} /> {blog.category}
-          </div>
-        )}
+      <main style={{ paddingTop: 48, paddingBottom: 80 }}>
 
-        <h1 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] tracking-tight italic uppercase mb-8">
-          {blog.title}
-        </h1>
+        {/* ── Full-width header area ── */}
+        <div style={{ maxWidth: '88%', margin: '0 auto', paddingLeft: '6%', paddingRight: '6%' }}>
 
-        <div className="flex flex-wrap items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-12 border-y border-slate-100 py-6">
-          <div className="flex items-center gap-2">
-            <User size={14} className="text-[#ec4899]" /> By {blog.author || 'Admin'}
+          {/* Breadcrumb */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, paddingTop: 24 }}>
+            <Link href="/blogs" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11, fontWeight: 700, color: '#64748b',
+              textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.1em',
+              transition: 'color 0.2s',
+            }}
+              onMouseEnter={e => (e.currentTarget.style.color = '#14b8a6')}
+              onMouseLeave={e => (e.currentTarget.style.color = '#64748b')}
+            >
+              <ArrowLeft size={14} /> Back to Articles
+            </Link>
+            {blog.category && (
+              <>
+                <span style={{ color: '#cbd5e1', fontSize: 12 }}>·</span>
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  fontSize: 10, fontWeight: 700, color: '#10b981',
+                  background: 'rgba(16,185,129,0.08)', padding: '4px 12px',
+                  borderRadius: 20, border: '1px solid rgba(16,185,129,0.2)',
+                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                }}>
+                  <Tag size={10} /> {blog.category}
+                </span>
+              </>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <Calendar size={14} className="text-[#ec4899]" /> {new Date(blog.createdAt || new Date()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+
+          {/* Title — large but readable, NOT all-caps */}
+          <h1 style={{
+            fontSize: 'clamp(32px, 4.5vw, 56px)',
+            fontWeight: 800,
+            color: '#0f172a',
+            lineHeight: 1.18,
+            letterSpacing: '-0.025em',
+            marginBottom: 24,
+            maxWidth: '88%',
+          }}>
+            {blog.title}
+          </h1>
+
+          {/* Meta row */}
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 20,
+            paddingTop: 20, paddingBottom: 20,
+            borderTop: '1px solid rgba(20,184,166,0.1)',
+            borderBottom: '1px solid rgba(20,184,166,0.1)',
+            marginBottom: 40,
+          }}>
+            {/* Author */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 12,
+                background: 'linear-gradient(135deg, #2563eb, #14b8a6)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontWeight: 800, fontSize: 13,
+              }}>
+                {(blog.author || 'A')[0].toUpperCase()}
+              </div>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', lineHeight: 1 }}>{blog.author || 'Admin'}</p>
+                <p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500, marginTop: 2 }}>NurseFlex Editorial</p>
+              </div>
+            </div>
+
+            <div style={{ width: 1, height: 28, background: 'rgba(20,184,166,0.15)' }} />
+
+            {/* Date */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b', fontWeight: 600 }}>
+              <Calendar size={13} style={{ color: '#14b8a6' }} />
+              {new Date(blog.createdAt || new Date()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </div>
+
+            {/* Read time */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b', fontWeight: 600 }}>
+              <Clock size={13} style={{ color: '#14b8a6' }} />
+              {readTime} min read
+            </div>
+
+            {blog.views !== undefined && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b', fontWeight: 600 }}>
+                <Eye size={13} style={{ color: '#14b8a6' }} />
+                {blog.views.toLocaleString()} views
+              </div>
+            )}
           </div>
-          {blog.views !== undefined && (
-            <div className="flex items-center gap-2">
-              <Eye size={14} className="text-[#ec4899]" /> {blog.views} Views
+
+          {/* Cover image — full width of container */}
+          {blog.imageUrl && (
+            <div style={{ borderRadius: 24, overflow: 'hidden', marginBottom: 48, boxShadow: '0 8px 40px rgba(0,0,0,0.1)', border: '1px solid rgba(0,0,0,0.05)' }}>
+              <img
+                src={blog.imageUrl}
+                alt={blog.title}
+                style={{ width: '100%', height: 460, objectFit: 'cover', objectPosition: 'center', display: 'block' }}
+              />
             </div>
           )}
-        </div>
 
-        {blog.imageUrl && (
-          <div className="rounded-[3rem] overflow-hidden mb-16 shadow-2xl border border-slate-100">
-            <img
-              src={blog.imageUrl}
-              alt={blog.title}
-              className="w-full h-auto max-h-[600px] object-cover"
-            />
-          </div>
-        )}
-
-        {/* Article Content */}
-        {Array.isArray(blog.sections) && blog.sections.length > 0 ? (
-          <div className="space-y-12">
-            {blog.sections.map((section: any, idx: number) => (
-              <div key={idx} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
-                {section.type === 'text' ? (
-                  <article className="prose prose-lg prose-slate max-w-none 
-                    prose-headings:font-black prose-headings:italic prose-headings:uppercase prose-headings:tracking-tight
-                    prose-p:font-medium prose-p:leading-relaxed prose-p:text-slate-600
-                    prose-strong:font-black prose-strong:text-slate-900
-                    prose-a:text-[#ec4899] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-                    prose-img:rounded-3xl prose-img:shadow-xl
-                    prose-blockquote:border-l-4 prose-blockquote:border-[#ec4899] prose-blockquote:bg-pink-50 prose-blockquote:p-6 prose-blockquote:rounded-r-2xl prose-blockquote:italic prose-blockquote:text-slate-700
-                    whitespace-pre-wrap text-lg
-                  ">
-                    {section.content}
-                  </article>
-                ) : (
-                  <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-100 group">
-                    <img 
-                      src={section.content} 
-                      className="w-full h-auto object-cover max-h-[700px] hover:scale-[1.01] transition-transform duration-500" 
-                      alt={`insight-visual-${idx}`} 
-                    />
+          {/* ── Article body ── */}
+          <div style={{ width: '100%' }}>
+            {Array.isArray(blog.sections) && blog.sections.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+                {blog.sections.map((section: any, idx: number) => (
+                  <div
+                    key={idx}
+                    style={{
+                      animation: `fadeUp 0.5s ease ${idx * 0.08}s both`,
+                    }}
+                  >
+                    {section.type === 'text' ? (
+                      <p style={{
+                        fontSize: 18,
+                        lineHeight: 1.85,
+                        color: '#374151',
+                        fontWeight: 400,
+                        whiteSpace: 'pre-wrap',
+                        letterSpacing: '0.01em',
+                      }}>
+                        {cleanText(section.content)}
+                      </p>
+                    ) : section.content ? (
+                      <div style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.05)' }}>
+                        <img
+                          src={section.content}
+                          style={{ width: '100%', height: 480, objectFit: 'cover', objectPosition: 'center', display: 'block', transition: 'transform 0.6s ease' }}
+                          alt={`section-image-${idx}`}
+                          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.02)')}
+                          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                        />
+                      </div>
+                    ) : null}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <article className="prose prose-lg prose-slate max-w-none 
-            prose-headings:font-black prose-headings:italic prose-headings:uppercase prose-headings:tracking-tight
-            prose-p:font-medium prose-p:leading-relaxed prose-p:text-slate-600
-            prose-strong:font-black prose-strong:text-slate-900
-            prose-a:text-[#ec4899] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-            prose-img:rounded-3xl prose-img:shadow-xl
-            prose-blockquote:border-l-4 prose-blockquote:border-[#ec4899] prose-blockquote:bg-pink-50 prose-blockquote:p-6 prose-blockquote:rounded-r-2xl prose-blockquote:italic prose-blockquote:text-slate-700
-            whitespace-pre-wrap text-lg
-          ">
-            {blog.content}
-          </article>
-        )}
-
-        {/* Author Bio / Footer */}
-        <div className="mt-20 pt-10 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gradient-to-tr from-[#ec4899] to-pink-400 rounded-full flex items-center justify-center text-white font-black italic shadow-lg">
-              NF
-            </div>
-            <div>
-              <h4 className="font-black text-slate-900 italic uppercase">NurseFlex Editorial Team</h4>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Empowering Healthcare Professionals</p>
-            </div>
+            ) : (
+              <p style={{
+                fontSize: 18,
+                lineHeight: 1.85,
+                color: '#374151',
+                fontWeight: 400,
+                whiteSpace: 'pre-wrap',
+                letterSpacing: '0.01em',
+              }}>
+                {cleanText(blog.content)}
+              </p>
+            )}
           </div>
 
-          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="px-6 py-3 bg-slate-100 text-slate-900 hover:bg-slate-200 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-colors flex items-center gap-2">
-            Back to Top
-          </button>
+          {/* ── Author footer ── */}
+          <div style={{
+            marginTop: 64, paddingTop: 36,
+            borderTop: '1px solid rgba(20,184,166,0.12)',
+            display: 'flex', flexDirection: 'column',
+            gap: 24,
+          }}>
+            {/* Author card */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 16,
+              padding: '24px 28px', borderRadius: 20,
+              background: 'linear-gradient(135deg, rgba(20,184,166,0.04), rgba(16,185,129,0.03))',
+              border: '1px solid rgba(20,184,166,0.12)',
+            }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: 18, flexShrink: 0,
+                background: 'linear-gradient(135deg, #2563eb, #14b8a6)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontWeight: 800, fontSize: 18,
+                boxShadow: '0 4px 16px rgba(20,184,166,0.3)',
+              }}>NF</div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>NurseFlex Editorial Team</p>
+                <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.5 }}>
+                  Dedicated to empowering nursing professionals with career insights, tips, and industry updates across the United States.
+                </p>
+              </div>
+            </div>
+
+            {/* Bottom actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+              <Link href="/blogs" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '11px 24px', borderRadius: 12,
+                background: 'rgba(20,184,166,0.07)', border: '1px solid rgba(20,184,166,0.2)',
+                color: '#0d9488', fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                transition: 'all 0.2s',
+              }}>
+                <ArrowLeft size={14} /> More Articles
+              </Link>
+
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                style={{
+                  padding: '11px 24px', borderRadius: 12,
+                  background: 'linear-gradient(135deg, #14b8a6, #10b981)',
+                  border: 'none', color: 'white',
+                  fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(20,184,166,0.3)',
+                  transition: 'opacity 0.2s',
+                }}
+              >
+                ↑ Back to Top
+              </button>
+            </div>
+          </div>
         </div>
       </main>
 
-      <footer className="bg-slate-900 text-slate-400 py-12 text-center text-sm border-t border-slate-800 mt-20">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="font-black italic text-white text-xl tracking-tighter">NurseFlex</span>
-          <p className="font-bold uppercase tracking-widest text-[10px]">© {new Date().getFullYear()} NurseFlex Community. All rights reserved.</p>
+      {/* ── Footer ── */}
+      <footer style={{ background: '#0f172a', padding: '40px 24px', marginTop: 40 }}>
+        <div style={{ maxWidth: '88%', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' }}>
+          <span style={{ fontSize: 22, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>NurseFlex</span>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+            © {new Date().getFullYear()} NurseFlex Community · All rights reserved.
+          </p>
         </div>
       </footer>
+
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        * { box-sizing: border-box; }
+        ::selection { background: rgba(20,184,166,0.15); }
+      `}</style>
     </div>
   );
 }

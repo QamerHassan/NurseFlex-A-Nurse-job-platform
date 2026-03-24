@@ -75,18 +75,18 @@ export default function VerifyPaymentPage() {
 
     if (isSubmitted) {
         return (
-            <div className="h-[90vh] flex items-center justify-center p-6 bg-slate-900 perspective-1000">
-                <Card className="max-w-md w-full border-none shadow-2xl shadow-pink-500/20 bg-white rounded-[4rem] p-12 text-center relative overflow-hidden ring-[20px] ring-white/5">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-16 -mt-16"></div>
+            <div className="h-[90vh] flex items-center justify-center p-6">
+                <Card className="max-w-md w-full border border-slate-100 shadow-2xl shadow-blue-50 bg-white rounded-3xl p-12 text-center relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-green-50/50 rounded-full blur-3xl -mr-16 -mt-16"></div>
                     <div className="relative z-10">
-                        <div className="w-24 h-24 bg-slate-900 rounded-[2.5rem] flex items-center justify-center text-5xl mx-auto mb-10 shadow-2xl shadow-slate-950/20 animate-bounce">
-                           <CheckCircle size={40} className="text-emerald-400" />
+                        <div className="w-20 h-20 bg-green-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-8 shadow-xl shadow-green-100">
+                           <CheckCircle size={32} />
                         </div>
-                        <h2 className="text-4xl font-bold text-slate-900 tracking-tight mb-6 leading-tight">Receipt<br/>Submitted</h2>
-                        <p className="text-slate-500 font-medium text-sm mb-12 leading-relaxed px-4">
-                            Your payment receipt has been received and is being verified by our team. Your dashboard features will be unlocked as soon as the review is complete.
+                        <h2 className="text-3xl font-bold text-slate-900 tracking-tight mb-4">Verification Sent</h2>
+                        <p className="text-slate-500 font-medium text-sm mb-10 leading-relaxed px-4">
+                            Your payment receipt has been received and is being verified. Your dashboard features will be unlocked as soon as the review is complete.
                         </p>
-                        <Button asChild size="lg" className="w-full h-16 rounded-2xl bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs shadow-2xl transition-all">
+                        <Button asChild size="lg" className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-lg shadow-blue-100">
                             <Link href="/business/dashboard">Go to Dashboard</Link>
                         </Button>
                     </div>
@@ -96,31 +96,28 @@ export default function VerifyPaymentPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-900 [background-size:40px_40px] [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.05)_1px,transparent_0)]">
-            <Card className="max-w-xl w-full border-none shadow-2xl shadow-blue-500/10 bg-white rounded-[4rem] p-12 relative overflow-hidden border-b-[20px] border-blue-600">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-50"></div>
-                <header className="text-center mb-12 relative z-10">
-                    <div className="w-20 h-20 bg-slate-900 rounded-[2rem] flex items-center justify-center text-white mx-auto mb-6 shadow-2xl shadow-slate-300 group-hover:rotate-6 transition-transform">
-                        <ShieldCheck size={36} className="text-pink-400" />
+        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50/50">
+            <Card className="max-w-xl w-full border border-slate-100 shadow-2xl shadow-blue-50 bg-white rounded-3xl p-10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                <header className="text-center mb-10 relative z-10">
+                    <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl shadow-blue-100">
+                        <ShieldCheck size={32} />
                     </div>
-                    <h2 className="text-4xl font-bold text-slate-900 tracking-tight leading-tight">Verify Payment</h2>
-                    <p className="text-slate-500 font-medium text-xs mt-4">Upload your verification receipt</p>
+                    <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Account Verification</h2>
+                    <p className="text-slate-400 font-medium text-xs mt-3 uppercase tracking-widest">Secure Document Upload</p>
                 </header>
 
-                <div className="space-y-10 relative z-10">
-                    <div className="bg-pink-50/50 p-8 rounded-[2.5rem] border border-pink-100 flex items-start gap-6 relative group overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <FileSearch size={80} />
+                <div className="space-y-8 relative z-10">
+                    <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 flex items-start gap-4">
+                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm shrink-0">
+                            <Info size={20} />
                         </div>
-                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-pink-600 shadow-lg shadow-pink-100 shrink-0">
-                            <Info size={24} />
-                        </div>
-                        <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                            To activate your account, please upload the PDF Receipt you downloaded after checkout. This helps us verify your payment and grant full access.
+                        <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                            To activate your account, please upload the PDF Receipt from your checkout. Our team will verify it within 24 hours.
                         </p>
                     </div>
 
-                    <form onSubmit={handleUpload} className="space-y-8">
+                    <form onSubmit={handleUpload} className="space-y-6">
                         <div className="relative group">
                             <input
                                 type="file"
@@ -129,15 +126,15 @@ export default function VerifyPaymentPage() {
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                                 required
                             />
-                            <div className={`p-16 border-4 border-dashed rounded-[3.5rem] transition-all flex flex-col items-center justify-center gap-6 ${file ? 'border-emerald-500 bg-emerald-50/20' : 'border-slate-100 group-hover:border-blue-500 group-hover:bg-slate-50 bg-slate-50/50'}`}>
-                                <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center text-4xl transition-all duration-700 shadow-2xl ${file ? 'bg-emerald-500 text-white scale-110 shadow-emerald-100' : 'bg-white text-slate-300 group-hover:scale-110 shadow-slate-100'}`}>
-                                    {file ? <CheckCircle size={40} /> : <Upload size={40} />}
+                            <div className={`p-12 border-2 border-dashed rounded-2xl transition-all flex flex-col items-center justify-center gap-4 ${file ? 'border-green-500 bg-green-50/30' : 'border-slate-200 group-hover:border-blue-500 group-hover:bg-slate-50 bg-slate-50/20'}`}>
+                                <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-3xl transition-all duration-500 shadow-lg ${file ? 'bg-green-500 text-white shadow-green-100' : 'bg-white text-slate-300 shadow-slate-50'}`}>
+                                    {file ? <CheckCircle size={28} /> : <Upload size={28} />}
                                 </div>
                                 <div className="text-center">
-                                    <p className="font-bold text-slate-900 text-base">
+                                    <p className="font-bold text-slate-900 text-sm">
                                         {file ? file.name : 'Upload Receipt PDF'}
                                     </p>
-                                    <Badge variant="outline" className="mt-2 border-slate-200 text-[10px] font-bold text-slate-400">Max File Size 5MB</Badge>
+                                    <Badge variant="outline" className="mt-2 border-slate-200 text-[9px] font-bold text-slate-400">PDF ONLY • MAX 5MB</Badge>
                                 </div>
                             </div>
                         </div>
@@ -145,23 +142,23 @@ export default function VerifyPaymentPage() {
                         <Button
                             type="submit"
                             disabled={uploading || !file}
-                            className={`w-full h-20 rounded-[2rem] font-black uppercase tracking-tighter italic text-xl transition-all flex items-center justify-center gap-4 ${uploading ? 'bg-slate-100 text-slate-300' : 'bg-slate-900 hover:bg-pink-600 text-white shadow-2xl active:scale-[0.98]'}`}
+                            className={`w-full h-14 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg ${uploading ? 'bg-slate-100 text-slate-300' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-100 active:scale-95'}`}
                         >
                             {uploading ? (
                                 <>
-                                    <Loader2 className="animate-spin" size={24} /> Validating...
+                                    <Loader2 className="animate-spin" size={18} /> Processing...
                                 </>
                             ) : (
                                 <>
-                                    Submit for Verification <ArrowRight size={24} />
+                                    Verify Account <ArrowRight size={18} />
                                 </>
                             )}
                         </Button>
                     </form>
 
-                    <div className="text-center">
-                        <Button asChild variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-pink-600 transition-colors gap-3">
-                            <Link href="/business/payment-success">
+                    <div className="text-center pt-2">
+                        <Button asChild variant="ghost" className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-blue-600 transition-colors gap-2">
+                            <Link href="/business/payment-success" className="flex items-center">
                                 <ChevronLeft size={14} /> Back to Receipt
                             </Link>
                         </Button>

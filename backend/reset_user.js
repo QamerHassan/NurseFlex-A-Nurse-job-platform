@@ -3,7 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function resetUser() {
-    const email = 'qamerhassan6@gmail.com';
+    const email = 'qamerhassan445@gmail.com';
     console.log(`--- RESETTING USER: ${email} ---`);
     try {
         const user = await prisma.user.update({

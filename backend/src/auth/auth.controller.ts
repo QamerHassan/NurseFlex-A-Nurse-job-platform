@@ -30,9 +30,11 @@ export class AuthController {
 
     const { name, email, password, role, ...additionalInfo } = body;
     
-    // Ensure yearsOfExperience is a number if it exists
-    if (additionalInfo.yearsOfExperience) {
+    // Ensure yearsOfExperience is a number if it exists and is not an empty string
+    if (additionalInfo.yearsOfExperience !== undefined && additionalInfo.yearsOfExperience !== '') {
       additionalInfo.yearsOfExperience = Number(additionalInfo.yearsOfExperience);
+    } else {
+      delete additionalInfo.yearsOfExperience;
     }
 
     return this.authService.register(name, email, password, role, additionalInfo);

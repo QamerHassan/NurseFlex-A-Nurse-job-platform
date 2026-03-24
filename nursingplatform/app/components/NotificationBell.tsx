@@ -107,9 +107,9 @@ export default function NotificationBell({ portal = 'nurse' }: NotificationBellP
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-all group border border-transparent hover:border-slate-200"
       >
-        <Bell size={22} className="text-slate-400 group-hover:text-pink-600 transition-colors" />
+        <Bell size={22} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
         {unreadCount > 0 && (
-          <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-pink-500 border-2 border-white rounded-full animate-pulse shadow-lg shadow-pink-200" />
+          <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-blue-500 border-2 border-white rounded-full animate-pulse shadow-lg shadow-blue-200" />
         )}
       </button>
 
@@ -120,7 +120,7 @@ export default function NotificationBell({ portal = 'nurse' }: NotificationBellP
             {unreadCount > 0 && (
               <button 
                 onClick={markAllRead}
-                className="text-[9px] font-black text-pink-600 uppercase tracking-widest hover:underline decoration-2 underline-offset-4"
+                className="text-[9px] font-black text-blue-600 uppercase tracking-widest hover:underline decoration-2 underline-offset-4"
               >
                 Mark all read
               </button>
@@ -130,7 +130,7 @@ export default function NotificationBell({ portal = 'nurse' }: NotificationBellP
           <div className="max-h-[32rem] overflow-y-auto custom-scrollbar">
             {notifications.length === 0 ? (
               <div className="p-12 text-center">
-                <div className="w-16 h-16 bg-pink-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-pink-200">
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-200">
                     <Zap size={32} />
                 </div>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No updates at the moment.</p>
@@ -141,12 +141,12 @@ export default function NotificationBell({ portal = 'nurse' }: NotificationBellP
                   key={n.id} 
                   href={getNotificationHref(n)}
                   onClick={() => handleNotificationClick(n)}
-                  className={`block p-6 border-b border-slate-50 hover:bg-slate-50 transition-all cursor-pointer group/item ${!n.isRead ? 'bg-pink-50/20' : ''}`}
+                  className={`block p-6 border-b border-slate-50 hover:bg-slate-50 transition-all cursor-pointer group/item ${!n.isRead ? 'bg-blue-50/20' : ''}`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${!n.isRead ? 'bg-pink-600 shadow-lg shadow-pink-200' : 'bg-transparent'}`} />
-                        <p className="font-bold text-[11px] text-slate-900 uppercase tracking-tight group-hover/item:text-pink-600 transition-colors">{n.title}</p>
+                        <div className={`w-2 h-2 rounded-full ${!n.isRead ? 'bg-blue-600 shadow-lg shadow-blue-200' : 'bg-transparent'}`} />
+                        <p className="font-bold text-[11px] text-slate-900 uppercase tracking-tight group-hover/item:text-blue-600 transition-colors">{n.title}</p>
                     </div>
                     <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{formatTime(n.createdAt)}</span>
                   </div>
@@ -159,7 +159,7 @@ export default function NotificationBell({ portal = 'nurse' }: NotificationBellP
           <Link 
             href={viewAllPath}
             onClick={() => setIsOpen(false)}
-            className="block w-full text-center p-5 text-[10px] font-bold uppercase tracking-[0.4em] text-slate-400 hover:text-pink-600 transition-all border-t border-slate-50 bg-slate-50/30 hover:bg-pink-50/50"
+            className="block w-full text-center p-5 text-[10px] font-bold uppercase tracking-[0.4em] text-slate-400 hover:text-blue-600 transition-all border-t border-slate-50 bg-slate-50/30 hover:bg-blue-50/50"
           >
             View all notifications <ChevronRight size={14} className="inline ml-1" />
           </Link>
@@ -167,4 +167,4 @@ export default function NotificationBell({ portal = 'nurse' }: NotificationBellP
       )}
     </div>
   );
-}
+}

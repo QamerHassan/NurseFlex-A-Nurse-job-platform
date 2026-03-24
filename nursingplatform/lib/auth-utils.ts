@@ -24,6 +24,12 @@ export const ALL_USER_STORAGE_KEYS = [
     // Any other ad-hoc keys
     'onboarding_complete',
     'x-google-user-id',
+    'business_token',
+    'business_user',
+    'token',
+    'user',
+    'business_x_google_user_id',
+    'hospital_token'
 ];
 
 export function clearPortalData(portal: 'business' | 'nurse'): void {

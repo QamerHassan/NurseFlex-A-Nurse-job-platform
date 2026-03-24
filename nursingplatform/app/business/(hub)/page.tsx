@@ -14,40 +14,38 @@ import { Badge } from "@/app/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card";
 
 export default function EmployerLandingPage() {
-    const [isApproved, setIsApproved] = React.useState(true);
+    const [user, setUser] = React.useState<any>(null);
 
     React.useEffect(() => {
         const userStr = localStorage.getItem('business_user');
         if (userStr) {
-            const user = JSON.parse(userStr);
-            if (user.status !== 'Active') {
-                setIsApproved(false);
-            }
-        } else {
-            setIsApproved(false);
+            setUser(JSON.parse(userStr));
         }
     }, []);
 
-    if (!isApproved) {
+    const isPending = user && user.status !== 'Active' && user.status !== 'APPROVED';
+    const isLoggedOut = !user;
+
+    if (isPending) {
         return (
-            <div className="h-[90vh] flex items-center justify-center p-6 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:40px_40px]">
-                <Card className="max-w-md w-full border-none shadow-2xl shadow-blue-100/50 bg-white rounded-[3.5rem] p-12 text-center relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-50"></div>
+            <div className="h-[90vh] flex items-center justify-center p-6">
+                <Card className="max-w-md w-full border border-slate-100 shadow-2xl shadow-blue-50 bg-white rounded-3xl p-12 text-center relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full blur-3xl -mr-16 -mt-16"></div>
                     <div className="relative z-10">
-                        <div className="w-24 h-24 bg-blue-600 rounded-[2.5rem] flex items-center justify-center text-4xl mx-auto mb-10 shadow-2xl shadow-blue-100 group-hover:rotate-3 transition-transform">
-                            <Lock size={40} className="text-white opacity-20" />
+                        <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-8 shadow-xl shadow-blue-100">
+                            <Lock size={32} />
                         </div>
-                        <h2 className="text-4xl font-black text-slate-900 italic tracking-tighter mb-6 uppercase leading-tight underline decoration-amber-500/20 underline-offset-8">Account Pending Review</h2>
-                        <p className="text-slate-500 font-bold text-sm mb-12 leading-relaxed px-4 italic">
-                            "Review in progress. Our team is currently reviewing your business credentials. You will have full access to the portal shortly."
+                        <h2 className="text-3xl font-bold text-slate-900 tracking-tight mb-4">Account Under Review</h2>
+                        <p className="text-slate-500 font-medium text-sm mb-10 leading-relaxed px-4">
+                            Our team is currently verifying your business credentials. You will have full access to the portal once your account is activated.
                         </p>
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-center gap-3 py-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                <Loader2 className="animate-spin text-amber-600" size={16} />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600">Pending Review</span>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-center gap-3 py-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                                <Loader2 className="animate-spin text-blue-600" size={16} />
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">Verification in progress</span>
                             </div>
-                            <Button asChild variant="ghost" className="w-full h-14 rounded-2xl text-slate-400 hover:text-red-500 font-black uppercase tracking-widest text-[10px]">
-                                <Link href="/">Log Out</Link>
+                            <Button asChild variant="ghost" className="w-full h-12 rounded-xl text-slate-400 hover:text-slate-600 font-bold uppercase tracking-widest text-[10px]">
+                                <Link href="/">Return to Home</Link>
                             </Button>
                         </div>
                     </div>
@@ -57,82 +55,97 @@ export default function EmployerLandingPage() {
     }
 
     return (
-        <div className="min-h-[80vh] flex flex-col animate-in fade-in duration-1000">
-            <main className="flex-1 max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 items-center gap-20">
-                <div className="space-y-12">
+        <div className="min-h-[80vh] flex flex-col pt-10">
+            <main className="flex-1 max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-2 items-center gap-16">
+                <div className="space-y-10">
                     <div className="space-y-6">
                         <header>
                             <div className="flex items-center gap-4 mb-6">
-                                <Badge className="bg-blue-600 font-black text-[9px] uppercase tracking-[0.3em] px-3 shadow-lg shadow-blue-100 italic">Business Portal</Badge>
+                                <Badge className="bg-blue-600 font-bold text-[10px] uppercase tracking-widest px-3 py-1 rounded-lg">Business Portal</Badge>
                                 <div className="h-px flex-1 bg-slate-100"></div>
                             </div>
-                            <h1 className="text-7xl font-black text-slate-900 leading-[1] tracking-tighter italic uppercase">
-                                Manage Your <br />
-                                <span className="text-blue-600 underline decoration-blue-100 underline-offset-8 decoration-8 whitespace-nowrap">Healthcare Team.</span>
+                            <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
+                                Manage your <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-500">Healthcare Team</span>
                             </h1>
                         </header>
                         
-                        <p className="text-slate-400 font-bold text-lg uppercase tracking-tight max-w-lg leading-snug">
-                            Find and hire qualified healthcare professionals with <span className="text-slate-900">ease</span> and zero friction.
+                        <p className="text-slate-500 font-medium text-lg max-w-lg leading-relaxed">
+                            Find and hire qualified healthcare professionals with <span className="text-slate-900 font-bold">maximum efficiency</span> and zero friction.
                         </p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-6">
-                        <Button asChild size="lg" className="h-20 px-12 rounded-[2rem] bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-tighter italic shadow-2xl shadow-blue-100 transition-all active:scale-95 group">
-                            <Link href="/business/post-job" className="flex items-center gap-4 text-xl">
-                                Post a Job <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                        </Button>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        {isLoggedOut ? (
+                            <>
+                                <Button asChild size="lg" className="h-14 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-xl shadow-blue-100 transition-all active:scale-95 group">
+                                    <Link href="/business/register" className="flex items-center gap-2 text-base">
+                                        Partner with Us <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                    </Link>
+                                </Button>
+                                <Button asChild variant="outline" size="lg" className="h-14 px-8 rounded-xl border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold transition-all active:scale-95">
+                                    <Link href="/auth/login?portal=business" className="text-base">
+                                        Employer Login
+                                    </Link>
+                                </Button>
+                            </>
+                        ) : (
+                            <Button asChild size="lg" className="h-14 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-xl shadow-blue-100 transition-all active:scale-95 group">
+                                <Link href="/business/dashboard" className="flex items-center gap-2 text-base">
+                                    Go to Dashboard <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                            </Button>
+                        )}
                     </div>
 
-                    <Card className="border-none shadow-sm bg-white rounded-[3rem] p-10 ring-1 ring-slate-100 relative overflow-hidden group hover:shadow-2xl hover:shadow-blue-50/50 transition-all duration-700">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/30 rounded-full blur-3xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div className="flex items-start gap-8 relative z-10">
-                            <div className="w-16 h-16 bg-blue-50 rounded-[1.5rem] flex items-center justify-center text-blue-600 shrink-0 shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">
-                                <Target size={32} />
+                    <Card className="border border-slate-100 shadow-sm bg-white rounded-2xl p-8 relative overflow-hidden group hover:shadow-lg transition-all duration-500">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                        <div className="flex items-start gap-6 relative z-10">
+                            <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">
+                                <Target size={28} />
                             </div>
                             <div>
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-2 italic">Need Quick Staffing?</h3>
-                                <p className="text-xs font-bold text-slate-400 leading-relaxed mb-6">Use NurseFlex to find specialized healthcare staff in real-time.</p>
-                                <Link href="#" className="text-blue-600 font-black text-xs uppercase tracking-[0.2em] hover:opacity-70 inline-flex items-center gap-2 group/link underline decoration-blue-100 underline-offset-4">
-                                    Search for Professionals <ArrowRight size={14} className="group-link/hover:translate-x-1 transition-transform" />
+                                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-2">Need Staffing?</h3>
+                                <p className="text-xs font-medium text-slate-400 leading-relaxed mb-4">Connect with specialized healthcare staff in real-time using our nationwide network.</p>
+                                <Link href="#" className="text-blue-600 font-bold text-xs uppercase tracking-widest hover:text-blue-700 inline-flex items-center gap-2 group/link">
+                                    Browse Professionals <ArrowRight size={14} className="group-link/hover:translate-x-1 transition-transform" />
                                 </Link>
                             </div>
                         </div>
                     </Card>
                 </div>
 
-                <div className="relative group perspective-1000">
-                    <div className="absolute inset-0 bg-blue-600/5 rounded-full blur-[120px] scale-110 -z-10 animate-pulse"></div>
-                    <div className="relative aspect-[4/5] rounded-[4rem] overflow-hidden shadow-2xl shadow-blue-100 ring-[20px] ring-white transition-all duration-700 group-hover:rotate-1 group-hover:scale-[1.02]">
+                <div className="relative group">
+                    <div className="absolute inset-0 bg-blue-600/5 rounded-full blur-[80px] scale-110 -z-10 animate-pulse"></div>
+                    <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border border-slate-100 transition-all duration-700 group-hover:scale-[1.01]">
                         <Image
                             src="/images/employer_landing_hero.png"
-                            alt="Recruiter and Nurse Interview"
+                            alt="Healthcare Recruiting"
                             fill
-                            className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                            className="object-cover transition-transform duration-1000 group-hover:scale-105"
                         />
                         {/* Status Overlays */}
-                        <div className="absolute top-10 left-10 flex flex-col gap-4">
-                            <Badge className="h-8 px-4 bg-blue-600/80 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-3">
-                                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></div>
-                                <span className="text-[9px] font-black uppercase tracking-[0.3em]">Network Live</span>
+                        <div className="absolute top-8 left-8 flex flex-col gap-3">
+                            <Badge className="h-7 px-4 bg-blue-600/80 backdrop-blur-md rounded-full border border-white/20 flex items-center gap-2.5">
+                                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></div>
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-white">Network Live</span>
                             </Badge>
-                            <Badge className="h-8 px-4 bg-blue-600/90 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-3">
-                                <Sparkles size={12} fill="white" />
-                                <span className="text-[9px] font-black uppercase tracking-[0.3em]">Verified Candidates</span>
+                            <Badge className="h-7 px-4 bg-white/90 backdrop-blur-md rounded-full border border-slate-200/50 flex items-center gap-2 shadow-lg">
+                                <Sparkles size={11} className="text-blue-600" />
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-900">Verified Talent</span>
                             </Badge>
                         </div>
 
-                        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[80%] bg-white/20 backdrop-blur-3xl rounded-[2.5rem] p-6 border border-white/20 shadow-2xl">
+                        <div className="absolute bottom-8 left-6 right-6 bg-white/90 backdrop-blur-md rounded-2xl p-5 border border-white/50 shadow-xl">
                              <div className="flex items-center justify-between">
-                                <div className="flex -space-x-4">
+                                <div className="flex -space-x-3">
                                     {[1,2,3,4].map(i => (
-                                        <div key={i} className="w-12 h-12 rounded-2xl border-4 border-white bg-slate-100 flex items-center justify-center text-[10px] font-black italic">N{i}</div>
+                                        <div key={i} className="w-10 h-10 rounded-xl border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 shadow-sm">N{i}</div>
                                     ))}
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">Active Talent</p>
-                                    <p className="text-2xl font-black text-white italic tracking-tighter leading-none">5.7k+</p>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Active Talent</p>
+                                    <p className="text-2xl font-bold text-slate-900 leading-none">5.7k+</p>
                                 </div>
                              </div>
                         </div>
@@ -140,12 +153,12 @@ export default function EmployerLandingPage() {
                 </div>
             </main>
 
-            <footer className="mt-auto border-t border-slate-100 py-12 px-10 bg-slate-50/50">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-                    <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.5em] italic">© 2026 NurseFlex Network</p>
-                    <div className="flex gap-10">
+            <footer className="mt-auto border-t border-slate-100 py-10 px-6 bg-white">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.3em]">© 2026 NurseFlex Network</p>
+                    <div className="flex gap-8">
                         {['Privacy', 'Terms', 'Security'].map(link => (
-                            <Link key={link} href="#" className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-blue-600 transition-colors">{link}</Link>
+                            <Link key={link} href="#" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-blue-600 transition-colors">{link}</Link>
                         ))}
                     </div>
                 </div>

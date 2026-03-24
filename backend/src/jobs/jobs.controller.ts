@@ -39,6 +39,12 @@ export class JobsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('my-count')
+  async getMyJobCount(@Req() req: any) {
+    return this.jobsService.getMyJobCount(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('business')
   async getBusinessJobs(@Req() req: any) {
     return this.jobsService.findByBusiness(req.user.userId);

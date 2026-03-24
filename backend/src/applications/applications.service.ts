@@ -18,7 +18,7 @@ export class ApplicationsService {
   // ==========================================
 
   // Apply for a job
-  async apply(userId: string, jobId: string, resumeUrl?: string) {
+  async apply(userId: string, jobId: string, resumeUrl?: string, experience?: any) {
     const existing = await this.prisma.application.findUnique({
       where: {
         userId_jobId: { userId, jobId },
@@ -35,48 +35,69 @@ export class ApplicationsService {
         jobId,
         resumeUrl,
         status: 'Pending',
+        ...({ experience } as any)
       },
       include: { 
-        job: true,
+        job: {
+          include: { postedBy: true }
+        },
         user: {
           include: { profile: true }
         }
       }
-    });
+    }) as any;
 
-    // Fire both email and in-app notification in parallel
-    if (application.user) {
+    // Fire emails and in-app notifications
+    if (application.user && application.job) {
       const nurseName = application.user.profile?.name || application.user.name || 'Nurse';
       const nurseEmail = application.user.email;
       const jobTitle = application.job.title;
       const facilityName = application.job.hospital;
+      const businessUser = application.job.postedBy;
 
-      this.logger.log(`📬 Sending application confirmation to ${nurseEmail} for job: ${jobTitle}`);
+      this.logger.log(`📬 Processing notifications for application to: ${jobTitle}`);
 
-      try {
-        await Promise.all([
-          // 1. Send confirmation email
-          this.emailService.sendApplicationConfirmationEmail(
-            nurseEmail,
+      const notifications = [
+        // 1. Nurse: Confirmation Email
+        this.emailService.sendApplicationConfirmationEmail(nurseEmail, nurseName, jobTitle, facilityName)
+          .catch(e => this.logger.error(`❌ Nurse email failed: ${e.message}`)),
+
+        // 2. Nurse: In-app Notification
+        this.notificationsService.createNotification(
+          userId,
+          '✅ Application Submitted',
+          `Your application for "${jobTitle}" at ${facilityName} has been received.`,
+          'APPLICATION',
+          { jobId, jobTitle, facilityName }
+        ).catch(e => this.logger.error(`❌ Nurse in-app failed: ${e.message}`)),
+      ];
+
+      // 3 & 4. Business: Notification (If job was posted by a user)
+      if (businessUser && businessUser.email) {
+        notifications.push(
+          // Email to Business
+          this.emailService.sendApplicationNoticeToBusiness(
+            businessUser.email,
+            businessUser.name || 'Facility Manager',
             nurseName,
-            jobTitle,
-            facilityName
-          ).then(() => this.logger.log(`✅ Email sent to ${nurseEmail}`)),
+            jobTitle
+          ).catch(e => this.logger.error(`❌ Business email failed: ${e.message}`)),
 
-          // 2. Create in-app notification
+          // In-app for Business
           this.notificationsService.createNotification(
-            userId,
-            '✅ Application Submitted Successfully',
-            `Your application for "${jobTitle}" at ${facilityName} has been received. We will notify you when the employer reviews your profile.`,
+            businessUser.id,
+            '👥 New Applicant Received',
+            `${nurseName} has applied for "${jobTitle}". Review their profile now.`,
             'APPLICATION',
-            { jobId, jobTitle, facilityName }
-          ).then(() => this.logger.log(`✅ In-app notification created for user: ${userId}`)),
-        ]);
-      } catch (dispatchError) {
-        this.logger.error(`❌ Email/Notification dispatch failed for user ${userId}:`, dispatchError?.message || dispatchError);
+            { jobId, nurseName, applicationId: application.id }
+          ).catch(e => this.logger.error(`❌ Business in-app failed: ${e.message}`))
+        );
       }
+
+      // Execute all notifications in background (don't block the return)
+      Promise.all(notifications);
     } else {
-      this.logger.warn(`⚠️ Application created but user data missing — cannot send notifications. userId: ${userId}`);
+      this.logger.warn(`⚠️ Application created but data missing for notifications. userId: ${userId}`);
     }
 
     return application;
@@ -264,6 +285,27 @@ export class ApplicationsService {
           count: totalReviews
         }
       };
+    });
+  }
+
+  async updateStatusByBusiness(businessId: string, applicationId: string, status: string) {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: { job: true }
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (application.job.postedById !== businessId) {
+      throw new BadRequestException('Aap is application ka status update nahi kar sakte, kyunki ye job aapne post nahi ki thi!');
+    }
+
+    return this.prisma.application.update({
+      where: { id: applicationId },
+      data: { status },
+      include: { job: true, user: true },
     });
   }
 }

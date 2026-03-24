@@ -327,6 +327,56 @@ export class EmailService {
         }
     }
 
+    async sendApplicationNoticeToBusiness(to: string, businessName: string, nurseName: string, jobTitle: string) {
+        const portalUrl = process.env.FRONTEND_URL || 'http://127.0.0.1:3000';
+        const applicantsUrl = `${portalUrl}/business/applicants`;
+
+        const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+        <div style="background-color: #ec4899; padding: 32px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-style: italic; font-size: 28px;">NurseFlex Business</h1>
+          <p style="color: #fce7f3; margin: 8px 0 0 0; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">New Applicant Received</p>
+        </div>
+        <div style="padding: 40px 32px;">
+          <h2 style="color: #0f172a; margin-top: 0; font-size: 24px; tracking: -0.5px;">Hello ${businessName},</h2>
+          <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 32px;">
+            A new professional, <strong>${nurseName}</strong>, has just applied for your job posting: <strong>${jobTitle}</strong>.
+          </p>
+          
+          <div style="background-color: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 16px; padding: 24px; margin-bottom: 32px;">
+            <p style="color: #9d174d; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-top: 0; margin-bottom: 12px;">Action Required</p>
+            <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0;">
+                Please review their profile and resume to decide on the next steps. You can approve the application or move them to the interview stage directly from your dashboard.
+            </p>
+          </div>
+
+          <div style="text-align: center;">
+            <a href="${applicantsUrl}" style="background-color: #ec4899; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: bold; display: inline-block; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.1), 0 2px 4px -1px rgba(236, 72, 153, 0.06);">Review Applicant</a>
+          </div>
+          
+          <p style="color: #94a3b8; font-size: 14px; margin-top: 40px; text-align: center;">
+            Manage your staffing needs efficiently with NurseFlex.
+          </p>
+        </div>
+        <div style="background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
+          <p style="color: #94a3b8; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} NurseFlex Business. All rights reserved.</p>
+        </div>
+      </div>
+    `;
+
+        try {
+            await this.transporter.sendMail({
+                from: `"NurseFlex Recruitment" <${process.env.SMTP_USER}>`,
+                to,
+                subject: `New Application: ${nurseName} for ${jobTitle} - NurseFlex`,
+                html,
+            });
+            this.logger.log(`Business application notice sent to ${to}`);
+        } catch (error) {
+            this.logger.error(`Failed to send business application notice to ${to}`, error);
+        }
+    }
+
     async sendApplicationConfirmationEmail(to: string, name: string, jobTitle: string, facilityName: string) {
         const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">

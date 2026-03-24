@@ -51,14 +51,14 @@ function PaymentForm({ tier }: { tier: any }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 mb-8">
+      <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-8">
         <div className="flex justify-between items-center mb-4">
           <span className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Selected Plan</span>
-          <span className="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black">{tier.name}</span>
+          <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-[10px] font-bold">{tier.name}</span>
         </div>
         <div className="flex justify-between items-end">
-          <p className="text-4xl font-black text-slate-900 italic">${tier.price}<span className="text-sm font-normal text-slate-400">/mo</span></p>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Billed Monthly</p>
+          <p className="text-4xl font-extrabold text-slate-900">${tier.price}<span className="text-sm font-medium text-slate-400">/mo</span></p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Billed Monthly</p>
         </div>
       </div>
 
@@ -72,15 +72,15 @@ function PaymentForm({ tier }: { tier: any }) {
 
       <button
         disabled={!stripe || loading}
-        className="w-full py-5 bg-indigo-600 text-white rounded-[2rem] font-black shadow-2xl shadow-indigo-100 hover:bg-slate-900 transition-all active:scale-95 flex items-center justify-center gap-3 text-lg disabled:opacity-50"
+        className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-3 text-base disabled:opacity-50 mt-6"
       >
-        {loading ? <Loader2 className="animate-spin" size={24} /> : (
-          <>Complete Payment <ShieldCheck size={20} /></>
+        {loading ? <Loader2 className="animate-spin" size={20} /> : (
+          <>Complete Payment <ShieldCheck size={18} /></>
         )}
       </button>
 
-      <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-        🔒 Secure Encrypted Transaction
+      <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4">
+        <span className="mr-1">🔒</span> Secure Encrypted Transaction
       </p>
     </form>
   );
@@ -152,15 +152,15 @@ export default function BusinessPaymentPage() {
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Registration
         </button>
 
-        <div className="bg-white p-12 rounded-[4rem] shadow-2xl border border-slate-100 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600 opacity-5 rounded-bl-[100px]"></div>
+        <div className="bg-white p-10 rounded-3xl shadow-2xl shadow-blue-50 border border-slate-100 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full blur-3xl -mr-16 -mt-16"></div>
           
-          <header className="text-center mb-12">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-white mb-6 shadow-xl shadow-indigo-100 rotate-3">
-              <CreditCard size={32} />
+          <header className="text-center mb-10 relative z-10">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-blue-600 text-white mb-6 shadow-xl shadow-blue-100">
+              <CreditCard size={28} />
             </div>
-            <h1 className="text-4xl font-black text-slate-900 italic uppercase tracking-tighter">Secure Payment</h1>
-            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Activate Your Professional Portfolio</p>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Complete Purchase</h1>
+            <p className="text-slate-500 text-xs font-medium mt-2">Activate Your Professional Portfolio</p>
           </header>
 
           <Suspense fallback={<Loader2 className="animate-spin" />}>

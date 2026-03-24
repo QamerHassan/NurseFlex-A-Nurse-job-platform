@@ -139,6 +139,7 @@ model Application {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   status      String   @default("Pending") 
   resumeUrl   String?  
+  experience  Json?
   appliedAt   DateTime @default(now())
 
   userId      String   @db.ObjectId

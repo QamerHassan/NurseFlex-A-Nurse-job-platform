@@ -28,17 +28,17 @@ export default function BottomNav() {
         >
           {/* Active indicator bar */}
           {item.active && (
-            <div className="absolute top-0 left-0 right-0 h-1 bg-[#ec4899] animate-in fade-in duration-300"></div>
+            <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600 animate-in fade-in duration-300"></div>
           )}
           
-          <div className={`flex flex-col items-center transition-colors ${item.active ? 'text-[#ec4899]' : 'text-slate-500'}`}>
+          <div className={`flex flex-col items-center transition-colors ${item.active ? 'text-blue-600' : 'text-slate-500'}`}>
             <item.icon size={22} className={item.active ? 'fill-current opacity-20' : ''} />
             <span className="text-[10px] font-bold mt-1 uppercase tracking-tighter">{item.label}</span>
           </div>
 
           {/* Triangular arrow indicator below */}
           {item.active && (
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#ec4899]"></div>
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-blue-600"></div>
           )}
         </Link>
       ))}

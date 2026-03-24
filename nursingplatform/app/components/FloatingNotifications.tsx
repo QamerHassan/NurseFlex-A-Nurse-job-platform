@@ -20,11 +20,21 @@ export default function FloatingNotifications() {
   const [activeToasts, setActiveToasts] = useState<Notification[]>([]);
   const [lastCheckedId, setLastCheckedId] = useState<string | null>(null);
 
+  // Initialize from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedId = localStorage.getItem('last_floating_notif_id');
+      if (savedId) {
+        setLastCheckedId(savedId);
+        console.log("🔔 Notifications: Initialized lastCheckedId from storage:", savedId);
+      }
+    }
+  }, []);
+
   const fetchNotifications = useCallback(async () => {
     // Auth Check: Skip if not logged in
     const token = localStorage.getItem('token') || localStorage.getItem('business_token');
-    const googleId = localStorage.getItem('x-google-user-id');
-    if (!token && !googleId) return;
+    if (!token) return;
 
     try {
       const response = await api.get<Notification[]>('/notifications');
@@ -32,49 +42,52 @@ export default function FloatingNotifications() {
       
       if (allNotifs.length > 0) {
         // Sirf unread notifications jo naye hon (previously shown na hon)
+        // String comparison work for MongoDB ObjectIDs because they are timestamp-prefixed and sequential enough
         const unreadNew = allNotifs.filter(n => !n.isRead && (!lastCheckedId || n.id > lastCheckedId));
         
         if (unreadNew.length > 0) {
-          // Toast show karein
+          console.log(`🔔 Notifications: Showing ${unreadNew.length} new toasts`);
           setActiveToasts(prev => [...prev, ...unreadNew]);
           
-          // Auto-remove after 5 seconds
           unreadNew.forEach(n => {
             setTimeout(() => {
               removeToast(n.id);
             }, 5000);
           });
           
-          // Update last checked id (assuming sequential IDs or at least we take the latest)
-          setLastCheckedId(allNotifs[0].id);
+          // Update last checked id and persist
+          const latestId = allNotifs[0].id;
+          setLastCheckedId(latestId);
+          localStorage.setItem('last_floating_notif_id', latestId);
         }
       }
     } catch (error) {
-       // Silently fail to not disturb user in dev, but check if it's a real API error
-       if (process.env.NODE_ENV === 'development') {
-         // Log once as a warning instead of a loud error
-         // console.warn("🔔 Notifications polling temporarily unavailable");
-       }
+       // Silent fail
     }
   }, [lastCheckedId]);
 
   useEffect(() => {
-    // Pehle initial check karein taake repeat na ho
-    const initialCheck = async () => {
+    // Initial sync to get the latest ID if we don't have one, without showing older toasts
+    const syncLatest = async () => {
+        if (lastCheckedId) return;
         const token = localStorage.getItem('token') || localStorage.getItem('business_token');
-        const googleId = localStorage.getItem('x-google-user-id');
-        if (!token && !googleId) return;
+        if (!token) return;
 
         try {
             const resp = await api.get<Notification[]>('/notifications');
-            if (resp.data.length > 0) setLastCheckedId(resp.data[0].id);
+            if (resp.data.length > 0) {
+                const latestId = resp.data[0].id;
+                setLastCheckedId(latestId);
+                localStorage.setItem('last_floating_notif_id', latestId);
+                console.log("🔔 Notifications: Seeded initial lastCheckedId:", latestId);
+            }
         } catch (e) {}
     };
-    initialCheck();
+    syncLatest();
 
-    const interval = setInterval(fetchNotifications, 10000); // Poll every 10s
+    const interval = setInterval(fetchNotifications, 10000);
     return () => clearInterval(interval);
-  }, [fetchNotifications]);
+  }, [fetchNotifications, lastCheckedId]);
 
   const removeToast = (id: string) => {
     setActiveToasts(prev => prev.filter(t => t.id !== id));

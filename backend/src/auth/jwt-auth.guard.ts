@@ -35,15 +35,17 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
                     }
                 } catch (e) {
                     console.error("❌ JwtAuthGuard: Google DB Lookup failed", e.message);
+                    throw new UnauthorizedException('Invalid authentication record');
                 }
             } else {
                 console.warn("⚠️ JwtAuthGuard: Malformed Google User ID format skipped:", userId);
+                throw new UnauthorizedException('Malformed identification token');
             }
         }
 
         const authHeader = headers['authorization'];
         if (authHeader && authHeader === 'Bearer MASTER_BYPASS_TOKEN') {
-            request.user = { role: 'ADMIN', bypass: true };
+            request.user = { userId: '111111111111111111111111', role: 'ADMIN', bypass: true };
             return true;
         }
 
@@ -59,10 +61,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
                 const { firstValueFrom } = await import('rxjs');
                 return await firstValueFrom(result);
             }
-            return result as boolean | Promise<boolean>;
+            return await Promise.resolve(result);
         } catch (authError) {
             console.error("❌ JwtAuthGuard: Passport Check Error:", authError.message);
-            return false;
+            throw new UnauthorizedException(authError.message || 'Authentication check failed');
         }
     }
 

@@ -16,11 +16,11 @@ export default function MyApplications() {
       case 'interview': 
         return { color: "text-purple-600", bg: "bg-purple-50", bar: "bg-purple-500", step: 3, note: "Employer scheduled an interview." };
       case 'reviewed': 
-        return { color: "text-pink-600", bg: "bg-pink-50", bar: "bg-pink-500", step: 2, note: "Employer is reviewing your profile." };
+        return { color: "text-blue-600", bg: "bg-blue-50", bar: "bg-blue-500", step: 2, note: "Employer is reviewing your profile." };
       case 'rejected':
         return { color: "text-rose-600", bg: "bg-rose-50", bar: "bg-rose-500", step: 0, note: "Application not selected this time." };
       default: 
-        return { color: "text-slate-600", bg: "bg-slate-50", bar: "bg-pink-500", step: 1, note: "Waiting for initial review" };
+        return { color: "text-slate-600", bg: "bg-slate-50", bar: "bg-blue-500", step: 1, note: "Waiting for initial review" };
     }
   };
 
@@ -41,7 +41,7 @@ export default function MyApplications() {
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-slate-50">
       <div className="flex flex-col items-center gap-4">
-        <Loader2 className="animate-spin text-pink-600" size={48} />
+        <Loader2 className="animate-spin text-blue-600" size={48} />
         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Loading your applications...</p>
       </div>
     </div>
@@ -78,7 +78,7 @@ export default function MyApplications() {
                       <Hospital className={styles.color} size={32} />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-black text-slate-900 leading-tight mb-1 group-hover:text-pink-600 transition-colors">
+                      <h3 className="text-2xl font-black text-slate-900 leading-tight mb-1 group-hover:text-blue-600 transition-colors">
                         {app.job?.title}
                       </h3>
                       <div className="flex flex-wrap gap-4 items-center">

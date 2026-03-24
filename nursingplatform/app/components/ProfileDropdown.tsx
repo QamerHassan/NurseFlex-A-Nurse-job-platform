@@ -56,10 +56,10 @@ export default function ProfileDropdown({ email }: { email?: string }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 overflow-hidden ring-offset-background transition-all hover:ring-2 hover:ring-pink-100 dark:hover:ring-pink-900">
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 overflow-hidden ring-offset-background transition-all hover:ring-2 hover:ring-blue-100 dark:hover:ring-blue-900">
                     <Avatar className="h-10 w-10">
                         <AvatarImage src={session?.user?.image || undefined} alt={displayEmail} />
-                        <AvatarFallback className="bg-pink-50 text-pink-600 font-bold text-xs">{initials}</AvatarFallback>
+                        <AvatarFallback className="bg-blue-50 text-blue-600 font-bold text-xs">{initials}</AvatarFallback>
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>
@@ -77,7 +77,7 @@ export default function ProfileDropdown({ email }: { email?: string }) {
                     {role === 'BUSINESS' ? (
                         <DropdownMenuItem asChild>
                             <Link href="/business/dashboard" className="flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                                <Shield className="w-5 h-5 text-pink-500" />
+                                <Shield className="w-5 h-5 text-blue-500" />
                                 <span className="font-bold text-slate-700">Business Hub</span>
                             </Link>
                         </DropdownMenuItem>
@@ -85,7 +85,7 @@ export default function ProfileDropdown({ email }: { email?: string }) {
                         <>
                             <DropdownMenuItem asChild>
                                 <Link href="/dashboard" className="flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                                    <LayoutDashboard className="w-5 h-5 text-pink-500" />
+                                    <LayoutDashboard className="w-5 h-5 text-blue-500" />
                                     <span className="font-bold text-slate-700">Dashboard</span>
                                 </Link>
                             </DropdownMenuItem>
@@ -114,7 +114,7 @@ export default function ProfileDropdown({ email }: { email?: string }) {
                 <DropdownMenuSeparator className="bg-slate-50" />
                 <DropdownMenuItem 
                     onClick={handleSignOut}
-                    className="flex items-center gap-3 px-3 py-4 rounded-xl cursor-pointer text-pink-600 hover:bg-pink-50 hover:text-pink-700 transition-colors active:scale-[0.98]"
+                    className="flex items-center gap-3 px-3 py-4 rounded-xl cursor-pointer text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors active:scale-[0.98]"
                 >
                     <LogOut className="w-5 h-5" />
                     <span className="font-black uppercase tracking-tighter italic">Terminate Session</span>

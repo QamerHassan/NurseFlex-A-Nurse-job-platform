@@ -14,14 +14,15 @@ async function bootstrap() {
 
   // 1. CORS Configuration
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001'],
+    origin: true, // true allows the origin from the request, effectively allowing any origin
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-google-user-id'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-google-user-id', 'Portal', 'Accept', 'X-Requested-With'],
     credentials: true,
   });
 
   // 2. Static Files Setup
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  // Using process.cwd() ensures it always looks at the project root 'uploads' folder
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
   });
 

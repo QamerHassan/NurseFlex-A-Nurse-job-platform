@@ -1,5 +1,4 @@
-import Script from 'next/script';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import api from '@/lib/api';
@@ -9,200 +8,114 @@ export default function GoogleOneTap() {
   const pathname = usePathname();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [debugMsg, setDebugMsg] = useState<string | null>(null);
+  const initialized = useRef(false);
+  const promptTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clientId = (
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+    '466790197396-mo966f4e104ntbgcsvovf5u9aq8nd1jc.apps.googleusercontent.com'
+  ).replace(/["']/g, '').trim();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Suppress the noisy GSI_LOGGER FedCM AbortError
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const originalError = console.error;
-      console.error = (...args: any[]) => {
-        if (args[0] && typeof args[0] === 'string' && args[0].includes('[GSI_LOGGER]:') &&
-          (args[0].includes('AbortError') || args[0].includes('NetworkError'))) {
-          return;
-        }
-        originalError.apply(console, args);
-      };
-
-      return () => {
-        console.error = originalError;
-      };
-    }
-  }, []);
-
-  const initializeOneTap = () => {
+  const handleCredentialResponse = async (response: any) => {
+    console.log("✅ Google One Tap credential received");
     const isBusinessPortal = pathname.startsWith('/business');
-    const tokenKey = isBusinessPortal ? 'business_token' : 'token';
-    const localToken = typeof window !== 'undefined' ? localStorage.getItem(tokenKey) : null;
-
-    if (status === 'authenticated' || status === 'loading' || localToken) {
-      if (localToken) console.log(`ℹ️ Google One Tap: Suppressed because ${tokenKey} exists in storage.`);
-      return;
-    }
-
-    if (!window.google || !window.google.accounts) {
-      console.warn('⚠️ Google One Tap: SDK not found');
-      setDebugMsg('SDK not found');
-      return;
-    }
-
-    async function handleCredentialResponse(response: any) {
-      console.log(`✅ Google One Tap [${isBusinessPortal ? 'Business' : 'Nurse'}]: Credential received`);
-      const role = isBusinessPortal ? 'BUSINESS' : 'NURSE';
-      document.cookie = `next_auth_role=${role}; path=/; max-age=300`;
-
-      try {
-        const result = await signIn('google-one-tap', {
-          credential: response.credential,
-          redirect: false
-        });
-
-        if (result?.error) {
-          console.error('❌ Google One Tap: Sign-in failed', result.error);
-          setDebugMsg('Sign-in failed: ' + result.error);
-        } else {
-          console.log('✅ Google One Tap: Sign-in successful! Fetching profile...');
-
-          try {
-            // Fetch profile to get role and onboarding status
-            const res = await api.get('/profile');
-            const user = res.data.user;
-
-            // Sync to localStorage as Backup
-            const userKey = user.role === 'BUSINESS' ? 'business_user' : 'user';
-            const googleIdKey = user.role === 'BUSINESS' ? 'business_x_google_user_id' : 'x-google-user-id';
-
-            localStorage.setItem(userKey, JSON.stringify(user));
-            localStorage.setItem(googleIdKey, user.id); // Fixed: Added this sync
-
-            // Perform Role-Based Redirect
-            if (user.role === 'BUSINESS') {
-              router.push('/business/dashboard');
-            } else {
-              if (user.isOnboarded) {
-                router.push('/dashboard');
-              } else {
-                router.push('/onboarding');
-              }
-            }
-          } catch (profileErr) {
-            console.warn('⚠️ Google One Tap: Profile fetch failed, falling back to reload', profileErr);
-            window.location.reload();
-          }
-        }
-      } catch (err) {
-        console.error('❌ Google One Tap: Error during sign-in', err);
-        setDebugMsg('Error during sign-in');
-      }
-    }
+    const role = isBusinessPortal ? 'BUSINESS' : 'NURSE';
+    document.cookie = `next_auth_role=${role}; path=/; max-age=300`;
 
     try {
-      console.log('🔍 Google One Tap: Initializing SDK...');
-      setDebugMsg('Initializing...');
-      
-      // 🛠️ DEV BYPASS: Clear Google's "cool-down" state to show prompt more often during testing
-      if (typeof document !== 'undefined') {
-        document.cookie = 'g_state=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      }
-
-      window.google.accounts.id.initialize({
-        client_id: (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '466790197396-mo966f4e104ntbgcsvovf5u9aq8nd1jc.apps.googleusercontent.com').replace(/["']/g, '').trim(),
-        callback: handleCredentialResponse,
-        auto_select: false, // Changed to false to avoid aggressive cookie errors
-        use_fedcm_for_prompt: false, // Absolutely MANDATORY to be FALSE for localhost visibility
-        itp_support: true,
-        context: 'use', // Stronger context prompt for the user
-        cancel_on_tap_outside: false // Prevent accidental dismissal that triggers Google's cooldown!
+      const result = await signIn('google-one-tap', {
+        credential: response.credential,
+        redirect: false,
       });
 
-      // Show the prompt
-      setTimeout(() => {
-        console.log('✨ Google One Tap: Sending prompt command...');
-        window.google.accounts.id.prompt((notification: any) => {
-          const reason = notification.getNotDisplayedReason();
-          const skipped = notification.getSkippedReason();
-
-          if (notification.isNotDisplayed()) {
-            console.warn('❌ One Tap Not Displayed. Reason:', reason);
-            setDebugMsg(`Hidden: ${reason}`);
-          } else if (notification.isSkippedMoment()) {
-            console.warn('⚠️ One Tap Skipped. Reason:', skipped);
-            setDebugMsg(`Skipped: ${skipped}`);
-          } else {
-            console.log('✅ One Tap Prompted Successfully');
-            setDebugMsg('Prompt Successful');
-          }
-        });
-      }, 1000); // 1s delay to ensure full script readiness
-    } catch (e: any) {
-      console.error('❌ Google One Tap Initialization Error:', e);
-      setDebugMsg(`Init Error: ${e.message}`);
+      if (!result?.error) {
+        const res = await api.get('/profile');
+        const user = res.data.user;
+        const userKey = user.role === 'BUSINESS' ? 'business_user' : 'user';
+        const googleIdKey = user.role === 'BUSINESS' ? 'business_x_google_user_id' : 'x-google-user-id';
+        localStorage.setItem(userKey, JSON.stringify(user));
+        localStorage.setItem(googleIdKey, user.id);
+        if (user.role === 'BUSINESS') router.push('/business/dashboard');
+        else router.push(user.isOnboarded ? '/dashboard' : '/onboarding');
+      }
+    } catch (err) {
+      console.error('❌ Google One Tap Auth Error:', err);
     }
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).handleGoogleResponse = handleCredentialResponse;
+    }
+  }, [pathname]);
+
+  useEffect(() => {
     if (!mounted || status === 'authenticated' || status === 'loading') return;
 
-    const isBusinessPortal = pathname.startsWith('/business');
-    const tokenKey = isBusinessPortal ? 'business_token' : 'token';
-    const localToken = typeof window !== 'undefined' ? localStorage.getItem(tokenKey) : null;
-    
-    if (localToken) {
-        setDebugMsg('Hidden: Logged in (local storage)');
-        return;
-    }
+    const isNursePortal =
+      (pathname === '/' || pathname.startsWith('/auth')) &&
+      !pathname.startsWith('/business') &&
+      !pathname.startsWith('/jobs'); // Disable auto-prompt on jobs page per user request
 
-    // If script is already loaded by a previous mount or SSR, run initialize immediately
-    if (window.google && window.google.accounts && window.google.accounts.id) {
-        console.log('⚡ SDK already loaded, initializing immediately.');
-        initializeOneTap();
-    } else {
-        // Manual script injection guarantees execution on every mount
-        const scriptId = 'google-gsi-client';
-        let script = document.getElementById(scriptId) as HTMLScriptElement;
-        
-        if (!script) {
-            script = document.createElement('script');
-            script.id = scriptId;
-            script.src = 'https://accounts.google.com/gsi/client';
-            script.async = true;
-            script.defer = true;
-            document.head.appendChild(script);
-        }
-        
-        script.onload = initializeOneTap;
-    }
+    if (!isNursePortal) return;
+
+    initialized.current = false;
+
+    const runInit = () => {
+      if (!window.google?.accounts?.id || initialized.current) return;
+      initialized.current = true;
+
+      console.log("🔍 Google One Tap: Initializing...");
+
+      // Clear Google's cooldown suppression cookie
+      document.cookie = 'g_state=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+
+      window.google.accounts.id.cancel();
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleCredentialResponse,
+        // Keep FedCM OFF — classic iframe-based One Tap popup
+        use_fedcm_for_prompt: false,
+        itp_support: true,
+        auto_select: false,
+        cancel_on_tap_outside: false,
+        context: 'signin',
+      });
+
+      promptTimeout.current = setTimeout(() => {
+        window.google.accounts.id.prompt((notification: any) => {
+          const reason = notification.isNotDisplayed()
+            ? `not displayed — ${notification.getNotDisplayedReason()}`
+            : notification.isSkippedMoment()
+              ? `skipped — ${notification.getSkippedReason()}`
+              : 'displayed ✅';
+          console.log("📢 One Tap status:", reason);
+        });
+      }, 800);
+    };
+
+    const interval = setInterval(() => {
+      if (window.google?.accounts?.id) {
+        clearInterval(interval);
+        runInit();
+      }
+    }, 300);
 
     return () => {
-        // We don't remove the script to avoid network spam, 
-        // but we can cancel any pending prompts if needed
-        if (window.google && window.google.accounts && window.google.accounts.id) {
-            window.google.accounts.id.cancel();
-        }
+      clearInterval(interval);
+      if (promptTimeout.current) clearTimeout(promptTimeout.current);
     };
   }, [mounted, status, pathname]);
 
   if (!mounted) return null;
-
-  return (
-    <>
-      {/* Visual Debugger - Always visible during this test */}
-      {debugMsg && (
-        <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-md shadow-lg z-[9999] text-sm font-mono max-w-sm">
-          <strong>Google Auth Debug:</strong><br/>
-          {debugMsg}
-        </div>
-      )}
-    </>
-  );
+  return null;
 }
 
-// Add types for Google script
 declare global {
-  interface Window {
-    google: any;
-  }
+  interface Window { google: any; handleGoogleResponse: any; }
 }

@@ -74,9 +74,9 @@ export default function SettingsLayout({ children, title }: SettingsLayoutProps)
             {/* 🚀 TOP NAV */}
             <nav className="border-b bg-white sticky top-0 z-[100] px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-8">
-                    <Link href="/dashboard" className="text-pink-600 text-3xl font-black tracking-tighter italic">NurseFlex</Link>
+                    <Link href="/dashboard" className="text-blue-600 text-3xl font-black tracking-tighter italic">NurseFlex</Link>
                     <div className="hidden md:flex gap-6 font-bold text-slate-600 text-sm">
-                        <Link href="/dashboard" className="hover:text-pink-600 transition-colors pb-2 border-b-2 border-transparent">Home</Link>
+                        <Link href="/dashboard" className="hover:text-blue-600 transition-colors pb-2 border-b-2 border-transparent">Home</Link>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -109,7 +109,7 @@ export default function SettingsLayout({ children, title }: SettingsLayoutProps)
                                     key={item.id}
                                     href={item.href}
                                     className={`w-full flex items-center justify-between p-4 rounded-r-xl transition-all group ${isActive
-                                        ? "bg-slate-50 border-l-4 border-pink-600"
+                                        ? "bg-slate-50 border-l-4 border-blue-600"
                                         : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
                                         }`}
                                 >
@@ -119,7 +119,7 @@ export default function SettingsLayout({ children, title }: SettingsLayoutProps)
                                             <div className="flex items-center gap-2">
                                                 <p className={`font-bold leading-tight ${isActive ? "text-slate-900" : ""}`}>{item.label}</p>
                                                 {item.isNew && (
-                                                    <span className="bg-pink-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter">New</span>
+                                                    <span className="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter">New</span>
                                                 )}
                                             </div>
                                             <p className="text-xs text-slate-500 font-medium italic">{item.sublabel}</p>
@@ -144,9 +144,9 @@ export default function SettingsLayout({ children, title }: SettingsLayoutProps)
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">© 2026 NurseFlex • Accessibility at NurseFlex • Privacy Center and Ad Choices • Terms</p>
                     <div className="flex gap-6 text-slate-400 font-black text-[10px] uppercase tracking-tighter">
-                        <Link href="#" className="hover:text-pink-600 underline">Privacy</Link>
-                        <Link href="#" className="hover:text-pink-600 underline">Terms</Link>
-                        <Link href="#" className="hover:text-pink-600 underline">Help</Link>
+                        <Link href="#" className="hover:text-blue-600 underline">Privacy</Link>
+                        <Link href="#" className="hover:text-blue-600 underline">Terms</Link>
+                        <Link href="#" className="hover:text-blue-600 underline">Help</Link>
                     </div>
                 </div>
             </footer>

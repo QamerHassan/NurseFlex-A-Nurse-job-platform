@@ -40,7 +40,7 @@ export default function OnboardingPage() {
         const userRole = (session?.user as any)?.role || localUser?.role;
         const isPending = (session?.user as any)?.status === 'PENDING' || localUser?.status === 'PENDING';
         
-        if (isPending) {
+        if (isPending && userRole === 'BUSINESS') {
             router.replace('/auth/pending');
             return;
         }
@@ -129,7 +129,7 @@ export default function OnboardingPage() {
     if (step === 5) {
         return (
             <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-24 h-24 bg-pink-50 text-pink-600 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 animate-bounce">
                     <CheckCircle2 size={60} strokeWidth={1.5} />
                 </div>
                 <h1 className="text-4xl font-black text-slate-900 mb-2 uppercase italic tracking-tighter">Profile Updated!</h1>
@@ -145,7 +145,7 @@ export default function OnboardingPage() {
             {/* 🔝 PROGRESS BAR */}
             <div className="w-full h-1 bg-slate-100 sticky top-0 z-50">
                 <div
-                    className="h-full bg-pink-600 transition-all duration-700 ease-in-out"
+                    className="h-full bg-blue-600 transition-all duration-700 ease-in-out"
                     style={{ width: `${(step / 5) * 100}%` }}
                 ></div>
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -160,7 +160,7 @@ export default function OnboardingPage() {
                     <>
                         <div className="mb-12 w-full">
                             <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-[1.1] mb-6">
-                                Let us make sure your preferences are up-to-date. <span className="text-pink-600">Where are you located?</span>
+                                Let us make sure your preferences are up-to-date. <span className="text-blue-600">Where are you located?</span>
                             </h1>
                             <p className="text-slate-500 font-medium text-lg italic">
                                 We use this to match you with jobs nearby. Since we support nurses <span className="text-slate-900 font-bold">strictly worldwide</span>, please specify your details below.
@@ -170,14 +170,14 @@ export default function OnboardingPage() {
                         <form onSubmit={handleNext} className="w-full space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-2 group">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 group-focus-within:text-pink-600 transition-colors">City</label>
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 group-focus-within:text-blue-600 transition-colors">City</label>
                                     <div className="relative">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-pink-600 transition-colors" size={20} />
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors" size={20} />
                                         <input
                                             required
                                             type="text"
                                             placeholder="e.g. New York"
-                                            className="w-full p-5 pl-12 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-pink-600 transition-all"
+                                            className="w-full p-5 pl-12 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-600 transition-all"
                                             value={formData.city}
                                             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                                         />
@@ -185,12 +185,12 @@ export default function OnboardingPage() {
                                 </div>
 
                                 <div className="space-y-2 group">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 group-focus-within:text-pink-600 transition-colors">State</label>
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 group-focus-within:text-blue-600 transition-colors">State</label>
                                     <div className="relative">
-                                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-pink-600 transition-colors z-10" size={20} />
+                                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors z-10" size={20} />
                                         <select
                                             required
-                                            className="w-full p-5 pl-12 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-pink-600 transition-all appearance-none cursor-pointer"
+                                            className="w-full p-5 pl-12 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-600 transition-all appearance-none cursor-pointer"
                                             value={formData.state}
                                             onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                                         >
@@ -207,14 +207,14 @@ export default function OnboardingPage() {
                             </div>
 
                             <div className="space-y-2 group max-w-xs">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 group-focus-within:text-pink-600 transition-colors">Postcode</label>
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 group-focus-within:text-blue-600 transition-colors">Postcode</label>
                                 <div className="relative">
-                                    <Navigation className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-pink-600 transition-colors" size={20} />
+                                    <Navigation className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors" size={20} />
                                     <input
                                         required
                                         type="text"
                                         placeholder="e.g. SW1A 1AA"
-                                        className="w-full p-5 pl-12 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-pink-600 transition-all"
+                                        className="w-full p-5 pl-12 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-600 transition-all"
                                         value={formData.postcode}
                                         onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
                                     />
@@ -224,7 +224,7 @@ export default function OnboardingPage() {
                             <div className="pt-10 flex justify-end items-center gap-6 border-t border-slate-100">
                                 <button
                                     type="submit"
-                                    className="bg-pink-600 hover:bg-pink-700 text-white font-black px-12 py-5 rounded-2xl shadow-2xl shadow-pink-200 transition-all active:scale-95 flex items-center gap-3 group"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-black px-12 py-5 rounded-2xl shadow-2xl shadow-blue-200 transition-all active:scale-95 flex items-center gap-3 group"
                                 >
                                     CONTINUE
                                     <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/40 transition-colors">
@@ -248,7 +248,7 @@ export default function OnboardingPage() {
                             </p>
                         </div>
 
-                        <div className="w-full mb-8 p-5 bg-pink-50/50 rounded-2xl flex items-center gap-4 text-pink-600 border border-pink-100/50">
+                        <div className="w-full mb-8 p-5 bg-blue-50/50 rounded-2xl flex items-center gap-4 text-blue-600 border border-blue-100/50">
                             <EyeOff size={20} />
                             <span className="text-sm font-bold uppercase tracking-widest">Not shown to employers.</span>
                         </div>
@@ -256,7 +256,7 @@ export default function OnboardingPage() {
                         <form onSubmit={handleNext} className="w-full space-y-10">
                             {/* PAY AMOUNT */}
                             <div className="space-y-3 group max-w-md">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 group-focus-within:text-pink-600 transition-colors">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 group-focus-within:text-blue-600 transition-colors">
                                     Minimum base pay
                                 </label>
                                 <div className="relative flex items-center">
@@ -275,11 +275,11 @@ export default function OnboardingPage() {
                                         required
                                         type="number"
                                         placeholder="0"
-                                        className="w-full p-5 pl-16 bg-white border-2 border-slate-200 rounded-2xl font-black text-2xl text-slate-900 outline-none focus:border-pink-600 transition-all shadow-sm"
+                                        className="w-full p-5 pl-16 bg-white border-2 border-slate-200 rounded-2xl font-black text-2xl text-slate-900 outline-none focus:border-blue-600 transition-all shadow-sm"
                                         value={formData.minPay}
                                         onChange={(e) => setFormData({ ...formData, minPay: e.target.value })}
                                     />
-                                    <div className="absolute right-4 text-slate-300 group-focus-within:text-pink-200 pointer-events-none">
+                                    <div className="absolute right-4 text-slate-300 group-focus-within:text-blue-200 pointer-events-none">
                                         <DollarSign size={24} />
                                     </div>
                                 </div>
@@ -295,7 +295,7 @@ export default function OnboardingPage() {
                                         type="button"
                                         onClick={() => setFormData({ ...formData, payPeriod: 'hour' })}
                                         className={`flex-1 min-w-[140px] p-5 rounded-2xl font-black border-2 transition-all flex flex-col items-center gap-2 ${formData.payPeriod === 'hour'
-                                            ? 'bg-pink-50 border-pink-600 text-pink-600'
+                                            ? 'bg-blue-50 border-blue-600 text-blue-600'
                                             : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'
                                             }`}
                                     >
@@ -306,7 +306,7 @@ export default function OnboardingPage() {
                                         type="button"
                                         onClick={() => setFormData({ ...formData, payPeriod: 'year' })}
                                         className={`flex-1 min-w-[140px] p-5 rounded-2xl font-black border-2 transition-all flex flex-col items-center gap-2 ${formData.payPeriod === 'year'
-                                            ? 'bg-pink-50 border-pink-600 text-pink-600'
+                                            ? 'bg-blue-50 border-blue-600 text-blue-600'
                                             : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'
                                             }`}
                                     >
@@ -316,9 +316,9 @@ export default function OnboardingPage() {
                                 </div>
                             </div>
 
-                            <button type="button" className="text-pink-600 font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:underline">
-                                Show more pay periods <ChevronDown size={14} />
-                            </button>
+                             <button type="button" className="text-blue-600 font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:underline">
+                                 Show more pay periods <ChevronDown size={14} />
+                             </button>
 
                             {/* NAVIGATION ACTIONS */}
                             <div className="pt-10 flex justify-between items-center border-t border-slate-100">
@@ -331,7 +331,7 @@ export default function OnboardingPage() {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="bg-pink-600 hover:bg-pink-700 text-white font-black px-12 py-5 rounded-2xl shadow-2xl shadow-pink-200 transition-all active:scale-95 flex items-center gap-3 group"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-black px-12 py-5 rounded-2xl shadow-2xl shadow-blue-200 transition-all active:scale-95 flex items-center gap-3 group"
                                 >
                                     CONTINUE
                                     <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/40 transition-colors text-white">
@@ -359,14 +359,14 @@ export default function OnboardingPage() {
                                         key={type}
                                         type="button"
                                         onClick={() => toggleJobType(type)}
-                                        className={`w-full p-4 rounded-2xl border-2 font-bold text-left transition-all flex items-center gap-4 ${formData.jobTypes.includes(type)
-                                            ? 'bg-pink-600 border-pink-600 text-white'
-                                            : 'bg-white border-slate-100 text-slate-900 hover:border-slate-200'
-                                            }`}
+                                         className={`w-full p-4 rounded-2xl border-2 font-bold text-left transition-all flex items-center gap-4 ${formData.jobTypes.includes(type)
+                                             ? 'bg-blue-600 border-blue-600 text-white'
+                                             : 'bg-white border-slate-100 text-slate-900 hover:border-slate-200'
+                                             }`}
                                     >
                                         <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${formData.jobTypes.includes(type) ? 'border-white' : 'border-slate-200 group-hover:border-slate-300'
                                             }`}>
-                                            {formData.jobTypes.includes(type) ? <CheckCircle2 size={14} fill="currentColor" className="text-pink-600" /> : <div className="text-slate-300 font-black text-xl mb-1">+</div>}
+                                             {formData.jobTypes.includes(type) ? <CheckCircle2 size={14} fill="currentColor" className="text-blue-600" /> : <div className="text-slate-300 font-black text-xl mb-1">+</div>}
                                         </div>
                                         {type}
                                     </button>
@@ -381,11 +381,11 @@ export default function OnboardingPage() {
                                 >
                                     Back
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={handleNext}
-                                    className="bg-pink-600 hover:bg-pink-700 text-white font-black px-12 py-5 rounded-2xl shadow-2xl shadow-pink-200 transition-all active:scale-95 flex items-center gap-3 group"
-                                >
+                                 <button
+                                     type="button"
+                                     onClick={handleNext}
+                                     className="bg-blue-600 hover:bg-blue-700 text-white font-black px-12 py-5 rounded-2xl shadow-2xl shadow-blue-200 transition-all active:scale-95 flex items-center gap-3 group"
+                                 >
                                     CONTINUE
                                     <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/40 transition-colors text-white">
                                         <ChevronDown className="-rotate-90" size={16} />
@@ -409,9 +409,9 @@ export default function OnboardingPage() {
                         </div>
 
                         <form onSubmit={handleSubmit} className="w-full space-y-8">
-                            <div className="space-y-4 group">
-                                <div className="flex justify-between items-end">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 group-focus-within:text-pink-600 transition-colors">
+                             <div className="space-y-4 group">
+                                 <div className="flex justify-between items-end">
+                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 group-focus-within:text-blue-600 transition-colors">
                                         Job-title
                                     </label>
                                     <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
@@ -422,19 +422,19 @@ export default function OnboardingPage() {
 
                                 <div className="space-y-4">
                                     <div className="relative">
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. Registered Nurse"
-                                            className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-pink-600 transition-all pr-20"
+                                         <input
+                                             type="text"
+                                             placeholder="e.g. Registered Nurse"
+                                             className="w-full p-5 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-600 transition-all pr-20"
                                             value={currentTitle}
                                             onChange={(e) => setCurrentTitle(e.target.value)}
                                             onKeyDown={addJobTitle}
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={addJobTitle}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-pink-600 text-white p-2 rounded-xl hover:bg-pink-700 transition-colors shadow-lg shadow-pink-100"
-                                        >
+                                         <button
+                                             type="button"
+                                             onClick={addJobTitle}
+                                             className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
+                                         >
                                             <div className="text-xl font-black mb-1 leading-none self-center">+</div>
                                         </button>
                                     </div>
@@ -442,16 +442,16 @@ export default function OnboardingPage() {
                                     {/* TAGS LIST */}
                                     <div className="flex flex-wrap gap-2">
                                         {formData.jobTitles.map((title) => (
-                                            <div
-                                                key={title}
-                                                className="bg-pink-50 text-pink-600 px-4 py-2 rounded-xl font-bold flex items-center gap-2 border border-pink-100 group/tag hover:bg-pink-100 transition-colors animate-in fade-in zoom-in duration-300"
-                                            >
+                                             <div
+                                                 key={title}
+                                                 className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold flex items-center gap-2 border border-blue-100 group/tag hover:bg-blue-100 transition-colors animate-in fade-in zoom-in duration-300"
+                                             >
                                                 {title}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeJobTitle(title)}
-                                                    className="text-blue-300 hover:text-pink-600 transition-colors"
-                                                >
+                                                 <button
+                                                     type="button"
+                                                     onClick={() => removeJobTitle(title)}
+                                                     className="text-blue-300 hover:text-blue-600 transition-colors"
+                                                 >
                                                     <Loader2 className="rotate-45" size={14} />
                                                 </button>
                                             </div>
@@ -468,11 +468,11 @@ export default function OnboardingPage() {
                                 >
                                     Back
                                 </button>
-                                <button
-                                    disabled={loading || formData.jobTitles.length === 0}
-                                    type="submit"
-                                    className="bg-pink-600 hover:bg-pink-700 disabled:bg-slate-300 text-white font-black px-12 py-5 rounded-2xl shadow-2xl shadow-pink-200 transition-all active:scale-95 flex items-center gap-3 group"
-                                >
+                                 <button
+                                     disabled={loading || formData.jobTitles.length === 0}
+                                     type="submit"
+                                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-black px-12 py-5 rounded-2xl shadow-2xl shadow-blue-200 transition-all active:scale-95 flex items-center gap-3 group"
+                                 >
                                     {loading ? (
                                         <Loader2 className="animate-spin" size={24} />
                                     ) : (

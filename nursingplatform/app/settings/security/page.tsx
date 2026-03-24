@@ -8,11 +8,11 @@ export default function SecuritySettingsPage() {
                 <section>
                     <div className="flex items-center gap-2 mb-6">
                         <h3 className="text-lg font-bold">Account protection</h3>
-                        <span className="bg-pink-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter">New</span>
+                        <span className="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter">New</span>
                     </div>
                     <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between group cursor-pointer hover:bg-slate-100 transition-all">
                         <p className="text-sm font-bold text-slate-700">2-Step Verification</p>
-                        <button className="text-pink-600 font-bold text-sm">Set up</button>
+                        <button className="text-blue-600 font-bold text-sm">Set up</button>
                     </div>
                 </section>
 

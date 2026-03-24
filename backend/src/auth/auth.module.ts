@@ -16,7 +16,7 @@ import { PrismaService } from '../prisma.service';
       useFactory: async (configService: ConfigService) => ({
         // Is key ko dhyan se dekhein
         secret: configService.get<string>('JWT_SECRET') || 'SUPER_SECRET_KEY_786',
-        signOptions: { expiresIn: '1d' },
+        signOptions: { expiresIn: '365d' },
       }),
     }),
   ],

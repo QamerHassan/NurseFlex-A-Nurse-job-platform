@@ -1,246 +1,450 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
-    MessageSquare, ChevronDown, MoreVertical,
-    Send, Paperclip, Smile, Loader2,
-    Search, ShieldCheck, Zap, History, X, User, ArrowRight,
-    Circle, Info
+    MessageSquare, MoreVertical, Send, Paperclip,
+    Smile, Loader2, Search, Info, X, RefreshCw
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import api from '@/lib/api';
-
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { Badge } from "@/app/components/ui/badge";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { Separator } from "@/app/components/ui/separator";
+import { Avatar, AvatarFallback } from "@/app/components/ui/avatar";
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function initials(name: string) {
+    return (name || 'E').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function formatTime(dateStr: string) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+function Skeleton({ w = '100%', h = 16 }: { w?: string; h?: number }) {
+    return (
+        <div style={{
+            width: w, height: h, borderRadius: 8,
+            background: 'linear-gradient(90deg, rgba(20,184,166,0.08), rgba(16,185,129,0.06), rgba(20,184,166,0.08))',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.4s infinite'
+        }} />
+    );
+}
+
+// ─── Avatar gradient by index ─────────────────────────────────────────────────
+const gradients = [
+    'linear-gradient(135deg, #14b8a6, #10b981)',
+    'linear-gradient(135deg, #2563eb, #14b8a6)',
+    'linear-gradient(135deg, #10b981, #059669)',
+    'linear-gradient(135deg, #0ea5e9, #2563eb)',
+];
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function MessagesPage() {
     const { data: session } = useSession();
     const [conversations, setConversations] = useState<any[]>([]);
-    const [selectedConversation, setSelectedConversation] = useState<any>(null);
-    const [messages, setMessages] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [newMessage, setNewMessage] = useState('');
-    const [sending, setSending] = useState(false);
+    const [selectedConv, setSelectedConv]   = useState<any>(null);
+    const [messages, setMessages]           = useState<any[]>([]);
+    const [loading, setLoading]             = useState(true);
+    const [msgLoading, setMsgLoading]       = useState(false);
+    const [newMessage, setNewMessage]       = useState('');
+    const [sending, setSending]             = useState(false);
+    const [search, setSearch]               = useState('');
+    const bottomRef = useRef<HTMLDivElement>(null);
+    const currentUserId = (session?.user as any)?.id;
 
     useEffect(() => {
-        const fetchConversations = async () => {
+        const init = async () => {
             try {
-                const convRes = await api.get('/messages/conversations');
-                setConversations(convRes.data);
-                if (convRes.data.length > 0) {
-                    setSelectedConversation(convRes.data[0]);
-                    fetchMessages(convRes.data[0].id);
+                const res = await api.get('/messages/conversations');
+                const convs = Array.isArray(res.data) ? res.data : [];
+                setConversations(convs);
+                if (convs.length > 0) {
+                    setSelectedConv(convs[0]);
+                    await fetchMessages(convs[0].id);
                 }
-            } catch (err: any) {
-                console.error("❌ Failed to fetch conversations:", err);
+            } catch (err) {
+                console.error('Fetch conversations failed:', err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchConversations();
+        init();
     }, []);
 
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
     const fetchMessages = async (convId: string) => {
+        setMsgLoading(true);
         try {
             const res = await api.get(`/messages/${convId}`);
-            setMessages(res.data);
+            setMessages(Array.isArray(res.data) ? res.data : []);
         } catch (err) {
-            console.error("Failed to fetch messages");
+            console.error('Fetch messages failed:', err);
+        } finally {
+            setMsgLoading(false);
         }
     };
 
-    const handleSendMessage = async () => {
-        if (!newMessage.trim() || !selectedConversation || sending) return;
+    const handleSend = async () => {
+        if (!newMessage.trim() || !selectedConv || sending) return;
         setSending(true);
         try {
-            await api.post(`/messages/${selectedConversation.id}`, { content: newMessage });
+            await api.post(`/messages/${selectedConv.id}`, { content: newMessage });
             setNewMessage('');
-            await fetchMessages(selectedConversation.id);
+            await fetchMessages(selectedConv.id);
         } catch (err) {
-            console.error("Failed to send message");
+            console.error('Send failed:', err);
         } finally {
             setSending(false);
         }
     };
 
-    const currentUserId = (session?.user as any)?.id;
+    const filteredConvs = conversations.filter(c =>
+        (c.employerName || '').toLowerCase().includes(search.toLowerCase())
+    );
 
+    // ─────────────────────────────────────────────────────────────────────────
     return (
-        <div className="h-[calc(100vh-72px)] bg-white flex overflow-hidden">
-            {/* INBOX LIST */}
-            <aside className="w-[320px] md:w-[400px] bg-white border-r border-slate-200 flex flex-col relative z-20">
-                <header className="p-6 border-b border-slate-200">
-                    <h1 className="text-xl font-bold text-slate-900 mb-6">Messages</h1>
-                    <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <Input placeholder="Search messages" className="h-10 pl-10 bg-slate-50 border-slate-200 rounded-md font-medium text-slate-900 focus-visible:ring-1 focus-visible:ring-[#ec4899] transition-all" />
-                    </div>
-                </header>
+        <div style={{
+            height: 'calc(100vh - 72px)', display: 'flex', overflow: 'hidden',
+            background: '#f8fafc', fontFamily: "'DM Sans', system-ui, sans-serif",
+            position: 'relative'
+        }}>
 
-                <ScrollArea className="flex-1">
+            {/* ── Ambient blobs ── */}
+            <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+                <div style={{ position: 'absolute', top: '-5%', right: '20%', width: '30%', height: '40%', background: 'radial-gradient(ellipse, rgba(20,184,166,0.07) 0%, transparent 70%)', filter: 'blur(40px)' }} />
+                <div style={{ position: 'absolute', bottom: '5%', left: '10%', width: '25%', height: '30%', background: 'radial-gradient(ellipse, rgba(16,185,129,0.05) 0%, transparent 70%)', filter: 'blur(40px)' }} />
+            </div>
+
+            {/* ════════════ SIDEBAR ════════════ */}
+            <aside style={{
+                width: 340, minWidth: 280, flexShrink: 0,
+                background: 'white', borderRight: '1px solid rgba(20,184,166,0.1)',
+                display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 2
+            }}>
+                {/* Header */}
+                <div style={{ padding: '24px 20px 16px', borderBottom: '1px solid rgba(20,184,166,0.08)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                        <div style={{
+                            width: 36, height: 36, borderRadius: 10,
+                            background: 'linear-gradient(135deg, #14b8a6, #10b981)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(20,184,166,0.35)'
+                        }}>
+                            <MessageSquare size={16} style={{ color: 'white' }} />
+                        </div>
+                        <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>Messages</h1>
+                        <span style={{
+                            marginLeft: 'auto', fontSize: 11, fontWeight: 700,
+                            background: 'linear-gradient(135deg, rgba(20,184,166,0.12), rgba(16,185,129,0.12))',
+                            color: '#0d9488', padding: '3px 10px', borderRadius: 20,
+                            border: '1px solid rgba(20,184,166,0.2)'
+                        }}>{conversations.length}</span>
+                    </div>
+                    {/* Search */}
+                    <div style={{ position: 'relative' }}>
+                        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(20,184,166,0.6)', pointerEvents: 'none' }} />
+                        <input
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            placeholder="Search conversations…"
+                            style={{
+                                width: '100%', height: 40, borderRadius: 12, paddingLeft: 36, paddingRight: 12,
+                                background: 'rgba(20,184,166,0.04)', border: '1px solid rgba(20,184,166,0.12)',
+                                fontSize: 13, fontWeight: 500, color: '#0f172a', outline: 'none',
+                                fontFamily: 'inherit', boxSizing: 'border-box'
+                            }}
+                        />
+                    </div>
+                </div>
+
+                {/* Conversation list */}
+                <div style={{ flex: 1, overflowY: 'auto' }}>
                     {loading ? (
-                        <div className="p-6 space-y-4">
-                            {[1,2,3].map(i => (
-                                <div key={i} className="flex gap-3">
-                                    <div className="h-12 w-12 rounded-md bg-slate-50 animate-pulse" />
-                                    <div className="flex-1 space-y-2 pt-1">
-                                        <div className="h-4 w-3/4 bg-slate-50 animate-pulse" />
-                                        <div className="h-3 w-1/2 bg-slate-50 animate-pulse" />
+                        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            {[1, 2, 3].map(i => (
+                                <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                                    <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(20,184,166,0.08)', flexShrink: 0, animation: 'pulse 1.5s infinite' }} />
+                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                        <Skeleton w="60%" h={12} />
+                                        <Skeleton w="80%" h={10} />
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    ) : conversations.length > 0 ? (
-                        <div className="">
-                            {conversations.map((conv) => (
-                                <button
-                                    key={conv.id}
-                                    onClick={() => {
-                                        setSelectedConversation(conv);
-                                        fetchMessages(conv.id);
-                                    }}
-                                    className={`w-full p-4 text-left flex gap-4 transition-all ${selectedConversation?.id === conv.id ? 'bg-pink-50/50 border-l-4 border-pink-600' : 'hover:bg-slate-50 border-l-4 border-transparent'}`}
-                                >
-                                    <Avatar className="h-12 w-12 rounded-md shadow-sm">
-                                        <AvatarFallback className="bg-slate-200 text-slate-600 font-bold">{conv.employerName?.[0] || 'E'}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1 min-w-0 pt-0.5">
-                                        <div className="flex justify-between items-start mb-0.5">
-                                            <span className="font-bold text-slate-900 truncate text-sm">{conv.employerName || "Employer"}</span>
-                                            <span className="text-[10px] text-slate-400 font-medium">Just now</span>
-                                        </div>
-                                        <p className={`text-xs truncate ${selectedConversation?.id === conv.id ? 'text-slate-900 font-semibold' : 'text-slate-500 font-normal'}`}>
-                                            {conv.messages?.[0]?.content || "Start a conversation..."}
-                                        </p>
+                    ) : filteredConvs.length === 0 ? (
+                        <div style={{ padding: '48px 20px', textAlign: 'center', opacity: 0.5 }}>
+                            <MessageSquare size={36} style={{ color: '#14b8a6', margin: '0 auto 12px' }} />
+                            <p style={{ fontSize: 13, fontWeight: 600, color: '#64748b' }}>No conversations yet</p>
+                        </div>
+                    ) : filteredConvs.map((conv, idx) => {
+                        const active = selectedConv?.id === conv.id;
+                        return (
+                            <button
+                                key={conv.id}
+                                onClick={() => { setSelectedConv(conv); fetchMessages(conv.id); }}
+                                style={{
+                                    width: '100%', padding: '14px 20px', textAlign: 'left', border: 'none', cursor: 'pointer',
+                                    display: 'flex', gap: 12, alignItems: 'center',
+                                    background: active ? 'linear-gradient(135deg, rgba(20,184,166,0.08), rgba(16,185,129,0.05))' : 'transparent',
+                                    borderLeft: `3px solid ${active ? '#14b8a6' : 'transparent'}`,
+                                    transition: 'all 0.15s',
+                                    fontFamily: 'inherit'
+                                }}
+                            >
+                                <div style={{
+                                    width: 44, height: 44, borderRadius: 14, flexShrink: 0,
+                                    background: gradients[idx % gradients.length],
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: 'white', fontWeight: 800, fontSize: 14,
+                                    boxShadow: active ? '0 4px 12px rgba(20,184,166,0.3)' : 'none'
+                                }}>{initials(conv.employerName)}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                                        <span style={{ fontWeight: 700, fontSize: 13, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {conv.employerName || 'Employer'}
+                                        </span>
+                                        <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500, flexShrink: 0, marginLeft: 8 }}>
+                                            {conv.messages?.[0]?.createdAt ? formatTime(conv.messages[0].createdAt) : 'Just now'}
+                                        </span>
                                     </div>
-                                </button>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="p-12 text-center opacity-40">
-                            <MessageSquare size={40} className="mx-auto text-slate-200 mb-4" />
-                            <p className="text-sm font-bold text-slate-400">No messages yet</p>
-                        </div>
-                    )}
-                </ScrollArea>
-                <div className="p-4 border-t border-slate-200 text-center">
-                    <Button variant="link" className="text-xs font-bold text-[#ec4899] hover:underline">Manage preferences</Button>
+                                    <p style={{
+                                        fontSize: 12, color: active ? '#0d9488' : '#94a3b8',
+                                        fontWeight: active ? 600 : 400,
+                                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                                    }}>
+                                        {conv.messages?.[0]?.content || 'Start a conversation…'}
+                                    </p>
+                                </div>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Footer */}
+                <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(20,184,166,0.08)', textAlign: 'center' }}>
+                    <button style={{ fontSize: 11, fontWeight: 700, color: '#14b8a6', background: 'none', border: 'none', cursor: 'pointer' }}>
+                        Manage preferences
+                    </button>
                 </div>
             </aside>
 
-            {/* CHAT AREA */}
-            <main className="flex-1 bg-white flex flex-col relative">
-                {selectedConversation ? (
-                    <div className="flex flex-col h-full">
-                        {/* HEADER */}
-                        <header className="px-6 h-[72px] border-b border-slate-200 flex items-center justify-between bg-white">
-                            <div className="flex items-center gap-4">
-                                <Avatar className="h-10 w-10 rounded-md">
-                                    <AvatarFallback className="bg-pink-600 text-white font-bold">{selectedConversation.employerName?.[0] || 'E'}</AvatarFallback>
-                                </Avatar>
+            {/* ════════════ CHAT AREA ════════════ */}
+            <main style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1, overflow: 'hidden' }}>
+                {selectedConv ? (
+                    <>
+                        {/* Chat Header */}
+                        <div style={{
+                            height: 72, padding: '0 24px', borderBottom: '1px solid rgba(20,184,166,0.1)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            background: 'white', flexShrink: 0
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                                <div style={{
+                                    width: 42, height: 42, borderRadius: 13, flexShrink: 0,
+                                    background: 'linear-gradient(135deg, #14b8a6, #10b981)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: 'white', fontWeight: 800, fontSize: 15,
+                                    boxShadow: '0 4px 12px rgba(20,184,166,0.3)'
+                                }}>{initials(selectedConv.employerName)}</div>
                                 <div>
-                                    <h3 className="font-bold text-base text-slate-900 leading-none">{selectedConversation.employerName || "Employer"}</h3>
-                                    <p className="text-[10px] text-emerald-600 font-bold mt-1.5 flex items-center gap-1">
-                                        <Circle className="fill-emerald-600" size={8} /> Active now
+                                    <p style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', marginBottom: 3 }}>
+                                        {selectedConv.employerName || 'Employer'}
                                     </p>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                        <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981' }} />
+                                        <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Active now</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-500 hover:text-slate-900">
-                                    <Info size={20} />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-500 hover:text-slate-900">
-                                    <MoreVertical size={20} />
-                                </Button>
+                            <div style={{ display: 'flex', gap: 4 }}>
+                                {[Info, MoreVertical].map((Icon, i) => (
+                                    <button key={i} style={{
+                                        width: 36, height: 36, borderRadius: 10, border: 'none', background: 'transparent',
+                                        color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        transition: 'background 0.15s'
+                                    }}
+                                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(20,184,166,0.08)')}
+                                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                                    >
+                                        <Icon size={18} />
+                                    </button>
+                                ))}
                             </div>
-                        </header>
+                        </div>
 
-                        {/* MESSAGES */}
-                        <ScrollArea className="flex-1 bg-slate-50/20">
-                            <div className="p-6 space-y-6">
-                                {messages.length > 0 ? messages.map((msg) => {
-                                    const isOwn = msg.senderId === currentUserId;
-                                    return (
-                                        <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-1 duration-300`}>
-                                            <div className={`p-4 rounded-xl text-sm max-w-[70%] shadow-sm ${isOwn 
-                                                ? 'bg-pink-600 text-white rounded-br-none' 
-                                                : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'
-                                            }`}>
-                                                {msg.content}
-                                                <div className={`text-[9px] mt-2 font-medium ${isOwn ? 'text-pink-100' : 'text-slate-400'}`}>12:45 PM</div>
+                        {/* Messages */}
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {msgLoading ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 0' }}>
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} style={{ display: 'flex', justifyContent: i % 2 === 0 ? 'flex-end' : 'flex-start' }}>
+                                            <div style={{ maxWidth: '60%' }}>
+                                                <Skeleton w={`${140 + i * 40}px`} h={48} />
                                             </div>
                                         </div>
-                                    );
-                                }) : (
-                                    <div className="h-full flex flex-col items-center justify-center py-20 opacity-30">
-                                        <MessageSquare size={48} className="text-slate-300 mb-4" />
-                                        <p className="text-sm font-bold text-slate-400">No messages in this chat yet</p>
-                                    </div>
-                                )}
-                            </div>
-                        </ScrollArea>
-
-                        {/* INPUT */}
-                        <footer className="p-4 border-t border-slate-200 bg-white">
-                            <div className="flex items-end gap-2 max-w-4xl mx-auto">
-                                <div className="flex-1 bg-slate-50 border border-slate-300 rounded-2xl flex flex-col focus-within:border-[#2557a7] transition-all overflow-hidden">
-                                     <textarea
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault();
-                                                handleSendMessage();
-                                            }
-                                        }}
-                                        placeholder="Type a message"
-                                        className="w-full p-4 bg-transparent border-none outline-none font-medium text-slate-900 placeholder:text-slate-400 resize-none min-h-[56px] max-h-32 text-sm"
-                                    />
-                                    <div className="flex items-center justify-between p-2 border-t border-slate-100 bg-slate-50/50">
-                                        <div className="flex gap-1">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 rounded-full hover:bg-white">
-                                                <Paperclip size={18} />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 rounded-full hover:bg-white">
-                                                <Smile size={18} />
-                                            </Button>
-                                        </div>
-                                        <Button 
-                                            onClick={handleSendMessage}
-                                            disabled={sending || !newMessage.trim()}
-                                            className="h-8 px-4 rounded-full bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs shadow-none"
-                                        >
-                                            {sending ? <Loader2 className="animate-spin h-3 w-3" /> : 'Send'}
-                                        </Button>
-                                    </div>
+                                    ))}
                                 </div>
+                            ) : messages.length === 0 ? (
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4, padding: '48px 0' }}>
+                                    <div style={{
+                                        width: 64, height: 64, borderRadius: 20, marginBottom: 16,
+                                        background: 'linear-gradient(135deg, rgba(20,184,166,0.1), rgba(16,185,129,0.1))',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}>
+                                        <MessageSquare size={28} style={{ color: '#14b8a6' }} />
+                                    </div>
+                                    <p style={{ fontSize: 14, fontWeight: 700, color: '#64748b' }}>No messages yet</p>
+                                    <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>Send a message to start the conversation</p>
+                                </div>
+                            ) : messages.map((msg) => {
+                                const isOwn = msg.senderId === currentUserId;
+                                return (
+                                    <div key={msg.id} style={{ display: 'flex', justifyContent: isOwn ? 'flex-end' : 'flex-start' }}>
+                                        {!isOwn && (
+                                            <div style={{
+                                                width: 32, height: 32, borderRadius: 10, marginRight: 8, flexShrink: 0,
+                                                background: 'linear-gradient(135deg, #14b8a6, #10b981)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                color: 'white', fontWeight: 800, fontSize: 11, alignSelf: 'flex-end'
+                                            }}>{initials(selectedConv.employerName)}</div>
+                                        )}
+                                        <div style={{
+                                            maxWidth: '68%', padding: '12px 16px', borderRadius: isOwn ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                                            background: isOwn
+                                                ? 'linear-gradient(135deg, #14b8a6, #10b981)'
+                                                : 'white',
+                                            color: isOwn ? 'white' : '#0f172a',
+                                            fontSize: 13, fontWeight: 500, lineHeight: 1.5,
+                                            boxShadow: isOwn
+                                                ? '0 4px 16px rgba(20,184,166,0.3)'
+                                                : '0 2px 8px rgba(0,0,0,0.06)',
+                                            border: isOwn ? 'none' : '1px solid rgba(20,184,166,0.1)'
+                                        }}>
+                                            {msg.content}
+                                            <div style={{
+                                                fontSize: 9, marginTop: 6, fontWeight: 600,
+                                                color: isOwn ? 'rgba(255,255,255,0.65)' : '#94a3b8',
+                                                textAlign: 'right'
+                                            }}>
+                                                {msg.createdAt ? formatTime(msg.createdAt) : 'Just now'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            <div ref={bottomRef} />
+                        </div>
+
+                        {/* Input */}
+                        <div style={{
+                            padding: '16px 24px', borderTop: '1px solid rgba(20,184,166,0.1)',
+                            background: 'white', flexShrink: 0
+                        }}>
+                            <div style={{
+                                display: 'flex', gap: 10, alignItems: 'flex-end',
+                                background: 'rgba(20,184,166,0.04)',
+                                border: '1px solid rgba(20,184,166,0.15)',
+                                borderRadius: 20, padding: '4px 4px 4px 16px',
+                                transition: 'border-color 0.2s'
+                            }}
+                                onFocusCapture={e => (e.currentTarget.style.borderColor = 'rgba(20,184,166,0.5)')}
+                                onBlurCapture={e => (e.currentTarget.style.borderColor = 'rgba(20,184,166,0.15)')}
+                            >
+                                {/* Attachment + Emoji */}
+                                <div style={{ display: 'flex', gap: 2, alignSelf: 'flex-end', paddingBottom: 8 }}>
+                                    {[Paperclip, Smile].map((Icon, i) => (
+                                        <button key={i} style={{
+                                            width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent',
+                                            color: '#14b8a6', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}>
+                                            <Icon size={16} />
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <textarea
+                                    value={newMessage}
+                                    onChange={e => setNewMessage(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+                                    }}
+                                    placeholder="Type a message…"
+                                    rows={1}
+                                    style={{
+                                        flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                                        fontSize: 13, fontWeight: 500, color: '#0f172a',
+                                        resize: 'none', minHeight: 40, maxHeight: 120, lineHeight: '1.6',
+                                        padding: '10px 0', fontFamily: 'inherit',
+                                        alignSelf: 'flex-end'
+                                    }}
+                                />
+
+                                <button
+                                    onClick={handleSend}
+                                    disabled={sending || !newMessage.trim()}
+                                    style={{
+                                        width: 40, height: 40, borderRadius: 14, border: 'none', cursor: sending || !newMessage.trim() ? 'not-allowed' : 'pointer',
+                                        background: sending || !newMessage.trim()
+                                            ? 'rgba(20,184,166,0.2)'
+                                            : 'linear-gradient(135deg, #14b8a6, #10b981)',
+                                        color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                                        boxShadow: sending || !newMessage.trim() ? 'none' : '0 4px 12px rgba(20,184,166,0.35)',
+                                        transition: 'all 0.2s', alignSelf: 'flex-end', marginBottom: 4
+                                    }}
+                                >
+                                    {sending ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={16} />}
+                                </button>
                             </div>
-                        </footer>
-                    </div>
+                            <p style={{ textAlign: 'center', fontSize: 10, color: '#94a3b8', marginTop: 8, fontWeight: 500 }}>
+                                Press <kbd style={{ background: 'rgba(20,184,166,0.08)', color: '#0d9488', padding: '1px 5px', borderRadius: 4, fontSize: 10, fontWeight: 700 }}>Enter</kbd> to send · <kbd style={{ background: 'rgba(20,184,166,0.08)', color: '#0d9488', padding: '1px 5px', borderRadius: 4, fontSize: 10, fontWeight: 700 }}>Shift+Enter</kbd> for new line
+            </p>
+                        </div>
+                    </>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center bg-slate-50/30 p-12">
-                         <div className="text-center max-w-sm">
-                            <div className="w-20 h-20 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm mx-auto mb-6">
-                                <MessageSquare size={32} className="text-slate-300" />
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-900 mb-2">Select a conversation</h2>
-                            <p className="text-sm text-slate-500 mb-8">Choose an employer from the list on the left to view your history and start chatting.</p>
-                            <Button asChild variant="outline" className="border-[#2557a7] text-[#2557a7] font-bold hover:bg-pink-50">
-                                <Link href="/dashboard">Back to job search</Link>
-                            </Button>
-                         </div>
+                    /* Empty state */
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
+                        <div style={{
+                            width: 80, height: 80, borderRadius: 24, marginBottom: 24,
+                            background: 'linear-gradient(135deg, rgba(20,184,166,0.1), rgba(16,185,129,0.08))',
+                            border: '1px solid rgba(20,184,166,0.15)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                            <MessageSquare size={36} style={{ color: '#14b8a6' }} />
+                        </div>
+                        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', marginBottom: 8, letterSpacing: '-0.01em' }}>
+                            Select a conversation
+                        </h2>
+                        <p style={{ fontSize: 13, color: '#64748b', textAlign: 'center', maxWidth: 300, marginBottom: 28, lineHeight: 1.6 }}>
+                            Choose an employer from the list to view your conversation history and start chatting.
+                        </p>
+                        <Link href="/dashboard" style={{
+                            padding: '11px 24px', borderRadius: 12, fontWeight: 700, fontSize: 13,
+                            background: 'linear-gradient(135deg, #14b8a6, #10b981)',
+                            color: 'white', textDecoration: 'none',
+                            boxShadow: '0 4px 16px rgba(20,184,166,0.35)'
+                        }}>
+                            Back to Job Search
+                        </Link>
                     </div>
                 )}
             </main>
+
+            <style>{`
+                @keyframes spin     { to { transform: rotate(360deg); } }
+                @keyframes shimmer  { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+                @keyframes pulse    { 0%,100% { opacity: 0.4; } 50% { opacity: 0.7; } }
+                * { box-sizing: border-box; }
+                ::-webkit-scrollbar { width: 4px; }
+                ::-webkit-scrollbar-thumb { background: rgba(20,184,166,0.2); border-radius: 2px; }
+                textarea { scrollbar-width: thin; }
+            `}</style>
         </div>
     );
-}
-
-function Skeleton({ className }: { className?: string }) {
-    return <div className={`animate-pulse bg-slate-100 rounded ${className}`} />;
 }

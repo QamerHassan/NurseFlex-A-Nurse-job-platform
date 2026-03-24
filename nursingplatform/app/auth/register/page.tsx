@@ -39,9 +39,15 @@ function RegisterContent() {
 
   useEffect(() => {
     if (portal === 'business') {
-      setFormData(prev => ({ ...prev, role: 'BUSINESS' }));
+      router.push('/business/register');
+      return;
     }
-  }, [portal]);
+    
+    // Safety check: If user type is business in session, they shouldn't be here
+    if (sessionStatus === 'authenticated' && (session?.user as any)?.role === 'BUSINESS') {
+        router.push('/business/register');
+    }
+  }, [portal, router, sessionStatus, session]);
 
   useEffect(() => {
     const isBusiness = portal === 'business';
@@ -60,9 +66,8 @@ function RegisterContent() {
 
   const handleGoogleSignIn = () => {
     clearAllUserData();
-    document.cookie = `next_auth_role=${formData.role}; path=/; max-age=300`;
-    const callbackUrl = formData.role === 'BUSINESS' ? '/business/dashboard' : '/dashboard';
-    signIn('google', { callbackUrl });
+    document.cookie = `next_auth_role=NURSE; path=/; max-age=300`;
+    signIn('google', { callbackUrl: '/dashboard' });
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -96,31 +101,27 @@ function RegisterContent() {
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white p-6">
-        <Card className="max-w-md w-full border border-slate-200 shadow-sm p-6 text-center rounded-xl">
+        <Card className="max-w-md w-full border border-slate-200 shadow-sm p-8 text-center rounded-2xl animate-in zoom-in duration-500">
             <CardHeader className="p-0 mb-8 space-y-4">
-                <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
-                    <CheckCircle2 size={32} className="text-emerald-500" />
+                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                    <CheckCircle2 size={32} className="text-blue-600" />
                 </div>
                 <div className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-slate-900 tracking-tight">
-                        Account created
+                    <CardTitle className="text-3xl font-bold text-slate-900 tracking-tight">
+                        Welcome to NurseFlex!
                     </CardTitle>
                     <CardDescription className="text-slate-500 font-medium text-sm pt-2">
-                        {formData.role === 'BUSINESS'
-                            ? "We are currently reviewing your profile. You'll hear from us soon."
-                            : "Your profile is under review. We'll verify your details and notify you."}
+                         Your account is active and ready to use. You can now start searching and applying for your dream nursing roles.
                     </CardDescription>
                 </div>
             </CardHeader>
             <CardContent className="p-0">
                 <div className="flex flex-col gap-3">
-                    {formData.role === 'BUSINESS' && (
-                    <Button asChild size="lg" className="h-12 font-bold rounded-lg bg-[#ec4899] hover:bg-[#db2777] text-white">
-                        <Link href="/business/dashboard">Go to Dashboard</Link>
+                    <Button asChild size="lg" className="h-14 bg-blue-600 hover:bg-blue-700 font-bold rounded-xl text-white shadow-xl shadow-blue-100 transition-all active:scale-95">
+                        <Link href="/auth/login">Sign in to Get Started</Link>
                     </Button>
-                    )}
-                    <Button asChild variant="ghost" size="lg" className="h-12 font-bold rounded-lg text-slate-500">
-                        <Link href="/">Return to home</Link>
+                    <Button asChild variant="ghost" size="lg" className="h-12 font-bold rounded-xl text-slate-400 hover:text-slate-600">
+                        <Link href="/">Back to home</Link>
                     </Button>
                 </div>
             </CardContent>
@@ -130,9 +131,9 @@ function RegisterContent() {
   }
 
   return (
-    <div className="min-h-screen flex selection:bg-pink-100 selection:text-pink-900">
+    <div className="min-h-screen flex selection:bg-blue-100 selection:text-blue-900">
       {/* ── LEFT BRANDED PANEL ── */}
-      <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col justify-between p-16 bg-[#ec4899]">
+      <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col justify-between p-16 bg-blue-600">
         <div className="relative">
           <Link href="/" className="flex items-center gap-3">
             <span className="text-white font-bold text-2xl tracking-tight">NurseFlex</span>
@@ -142,7 +143,7 @@ function RegisterContent() {
         <div className="relative space-y-12">
           <div className="max-w-lg">
             <h1 className="text-5xl font-bold text-white leading-[1.1] tracking-tighter mb-6">
-              The top site for <span className="text-pink-100">verified nurses</span> in the USA.
+              The top site for <span className="text-blue-100">verified nurses</span> in the USA.
             </h1>
             <p className="text-white/80 text-xl font-medium leading-relaxed">
               Find top-tier roles and grow your career with NurseFlex.
@@ -175,7 +176,7 @@ function RegisterContent() {
 
           {/* Mobile logo */}
           <Link href="/" className="flex lg:hidden items-center gap-3 mb-12 justify-center">
-            <span className="text-[#ec4899] font-bold text-2xl tracking-tight">NurseFlex</span>
+            <span className="text-blue-600 font-bold text-2xl tracking-tight">NurseFlex</span>
           </Link>
 
           <Card className="border-none shadow-none bg-transparent">
@@ -185,7 +186,7 @@ function RegisterContent() {
                   Create account
                 </CardTitle>
                 <CardDescription className="text-slate-500 font-medium text-sm pt-2">
-                  Joining as <span className="text-[#ec4899] font-bold">{formData.role === 'BUSINESS' ? 'Employer' : 'Nurse'}</span>
+                  Joining as <span className="text-blue-600 font-bold">{formData.role === 'BUSINESS' ? 'Employer' : 'Nurse'}</span>
                 </CardDescription>
               </div>
             </CardHeader>
@@ -206,7 +207,7 @@ function RegisterContent() {
                       const role = (session?.user as any)?.role || user.role;
                       router.push(role === 'BUSINESS' ? '/business/dashboard' : '/dashboard');
                     }}
-                    className="w-full h-14 font-bold rounded-lg bg-[#ec4899] hover:bg-[#db2777] shadow-none"
+                    className="w-full h-14 font-bold rounded-lg bg-blue-600 hover:bg-blue-700 shadow-none"
                   >
                     Go to Portal
                   </Button>
@@ -223,43 +224,38 @@ function RegisterContent() {
                     </div>
                   )}
 
-                  {/* Role switch */}
-                  {!portal && (
-                    <Tabs defaultValue="NURSE" className="mb-8 w-full" onValueChange={(v) => setFormData(f => ({ ...f, role: v as any }))}>
-                        <TabsList className="w-full h-12 p-1 bg-slate-100 border border-slate-200 rounded-lg">
-                            <TabsTrigger value="NURSE" className="flex-1 rounded-md font-bold data-[state=active]:bg-white data-[state=active]:text-[#ec4899] text-xs">Professional</TabsTrigger>
-                            <TabsTrigger value="BUSINESS" className="flex-1 rounded-md font-bold data-[state=active]:bg-white data-[state=active]:text-[#ec4899] text-xs">Employer</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-                  )}
+                  {/* Professional only header */}
+                  <div className="mb-8 p-3 bg-blue-50 border border-blue-100 rounded-lg text-center">
+                      <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">Healthcare Professional Registration</p>
+                  </div>
 
                   <form onSubmit={handleRegister} className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-x-4 gap-y-4">
                         {/* Name */}
                         <div className="space-y-1.5">
                             <Label htmlFor="name" className="text-xs font-bold text-slate-700">Full name</Label>
-                            <Input id="name" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-[#ec4899] font-medium" placeholder="Jane Doe"
+                            <Input id="name" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-blue-600 font-medium" placeholder="Jane Doe"
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                         </div>
 
                         {/* Email */}
                         <div className="space-y-1.5">
                             <Label htmlFor="email" className="text-xs font-bold text-slate-700">Email address</Label>
-                            <Input id="email" type="email" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-[#ec4899] font-medium" placeholder="jane@example.com"
+                            <Input id="email" type="email" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-blue-600 font-medium" placeholder="jane@example.com"
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                         </div>
 
                         {/* Phone */}
                         <div className="space-y-1.5">
                             <Label htmlFor="phone" className="text-xs font-bold text-slate-700">Phone number</Label>
-                            <Input id="phone" type="tel" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-[#ec4899] font-medium" placeholder="(555) 000-0000"
+                            <Input id="phone" type="tel" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-blue-600 font-medium" placeholder="(555) 000-0000"
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
                         </div>
 
                         {/* State */}
                         <div className="space-y-1.5">
                             <Label htmlFor="state" className="text-xs font-bold text-slate-700">State / City</Label>
-                            <Input id="state" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-[#ec4899] font-medium" placeholder="CA, Los Angeles"
+                            <Input id="state" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-blue-600 font-medium" placeholder="CA, Los Angeles"
                                 onChange={(e) => setFormData({ ...formData, state: e.target.value })} />
                         </div>
 
@@ -268,21 +264,21 @@ function RegisterContent() {
                                 {/* License */}
                                 <div className="space-y-1.5">
                                     <Label htmlFor="license" className="text-xs font-bold text-slate-700">License number</Label>
-                                    <Input id="license" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-[#ec4899] font-medium" placeholder="RN-123456"
+                                    <Input id="license" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-blue-600 font-medium" placeholder="RN-123456"
                                         onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })} />
                                 </div>
 
                                 {/* Experience */}
                                 <div className="space-y-1.5">
                                     <Label htmlFor="experience" className="text-xs font-bold text-slate-700">Years of experience</Label>
-                                    <Input id="experience" type="number" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-[#ec4899] font-medium" placeholder="5"
+                                    <Input id="experience" type="number" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-blue-600 font-medium" placeholder="5"
                                         onChange={(e) => setFormData({ ...formData, yearsOfExperience: e.target.value })} />
                                 </div>
 
                                 {/* Resume Upload */}
                                 <div className="space-y-1.5 md:col-span-2">
                                     <Label htmlFor="resume" className="text-xs font-bold text-slate-700">Upload resume</Label>
-                                    <Input id="resume" type="file" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-[#ec4899] file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-pink-50 file:text-[#ec4899] hover:file:bg-pink-100 cursor-pointer pt-2"
+                                    <Input id="resume" type="file" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-blue-600 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer pt-2"
                                         onChange={(e) => setResume(e.target.files?.[0] || null)} />
                                 </div>
                             </>
@@ -292,31 +288,35 @@ function RegisterContent() {
                     {/* Password */}
                     <div className="space-y-1.5">
                         <Label htmlFor="password" className="text-xs font-bold text-slate-700">Password</Label>
-                        <Input id="password" type="password" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-[#ec4899] font-medium" placeholder="••••••••"
+                        <Input id="password" type="password" required className="h-11 border-slate-300 rounded-lg focus-visible:ring-blue-600 font-medium" placeholder="••••••••"
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
                     </div>
 
-                    <Button type="submit" size="lg" disabled={loading} className="w-full h-12 mt-4 bg-[#ec4899] hover:bg-[#db2777] text-white font-bold rounded-lg shadow-none transition-all group disabled:opacity-50">
+                    <Button type="submit" size="lg" disabled={loading} className="w-full h-12 mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-none transition-all group disabled:opacity-50">
                       {loading ? "Creating account..." : "Create account"}
                     </Button>
                   </form>
 
-                  <div className="relative my-10">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-slate-200" />
-                    </div>
-                    <div className="relative flex justify-center">
-                      <span className="bg-white px-4 text-xs font-bold text-slate-400 uppercase tracking-widest">or</span>
-                    </div>
-                  </div>
+                  {formData.role !== 'BUSINESS' && (
+                    <>
+                      <div className="relative my-10">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-slate-200" />
+                        </div>
+                        <div className="relative flex justify-center">
+                          <span className="bg-white px-4 text-xs font-bold text-slate-400 uppercase tracking-widest">or</span>
+                        </div>
+                      </div>
 
-                  <Button onClick={handleGoogleSignIn} variant="outline" size="lg" className="w-full h-12 border-slate-300 rounded-lg font-bold bg-white hover:bg-slate-50 text-slate-700 transition-all group shadow-none">
-                    Continue with Google
-                  </Button>
+                      <Button onClick={handleGoogleSignIn} variant="outline" size="lg" className="w-full h-12 border-slate-300 rounded-lg font-bold bg-white hover:bg-slate-50 text-slate-700 transition-all group shadow-none">
+                        Continue with Google
+                      </Button>
+                    </>
+                  )}
 
                   <p className="text-center text-sm font-medium text-slate-500 mt-10">
                     Member of NurseFlex?{' '}
-                    <Link href="/auth/login" className="text-[#ec4899] font-bold hover:underline">Sign in here</Link>
+                    <Link href="/auth/login" className="text-blue-600 font-bold hover:underline">Sign in here</Link>
                   </p>
                 </>
               )}
@@ -330,7 +330,7 @@ function RegisterContent() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-pink-600" size={48} /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-blue-600" size={48} /></div>}>
       <RegisterContent />
     </Suspense>
   );

@@ -7,6 +7,7 @@ import BottomNav from './components/BottomNav';
 import NotificationBell from './components/NotificationBell';
 import { Providers } from './components/Providers';
 import GoogleOneTap from './components/GoogleOneTap';
+import Script from 'next/script';
 import './globals.css';
 
 import FloatingNotifications from './components/FloatingNotifications';
@@ -56,9 +57,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" className="scroll-smooth antialiased">
-      <body className="bg-white text-slate-900 selection:bg-pink-50 selection:text-pink-600" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <body className="bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-700" style={{ fontFamily: "'Poppins', sans-serif" }}>
         <Providers>
-          {mounted && !isAdminPortal && <GoogleOneTap />}
+          <Script 
+            src="https://accounts.google.com/gsi/client" 
+            strategy="afterInteractive"
+            id="google-gsi-client"
+          />
+          {mounted && (isLandingPage || isAuthPage) && !isPortal && <GoogleOneTap />}
           {mounted && isLoggedIn && !isAdminPortal && <FloatingNotifications />}
           {!isPortal && !isAuthPage && !isOnboarding && !isIndeedPage && <Navbar />}
           {mounted && isIndeedPage && !isPortal && <IndeedNavbar />}

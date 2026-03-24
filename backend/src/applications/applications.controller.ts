@@ -55,10 +55,11 @@ export class ApplicationsController {
   async applyToJob(
     @Req() req: any, 
     @Body('jobId') jobId: string,
-    @Body('resumeUrl') resumeUrl?: string // Optional: Profile se bhi aa sakta hai
+    @Body('resumeUrl') resumeUrl?: string,
+    @Body('experience') experience?: any
   ) {
     const userId = req.user.userId;
-    return this.appsService.apply(userId, jobId);
+    return this.appsService.apply(userId, jobId, resumeUrl, experience);
   }
 
   // 4. Nurse: Get only their own applications
@@ -95,5 +96,16 @@ export class ApplicationsController {
   async getBusinessApplicants(@Req() req: any) {
     const businessId = req.user.userId;
     return this.appsService.getBusinessJobsApplications(businessId);
+  }
+
+  // 9. Business: Update application status
+  @Post('business/update-status')
+  async updateBusinessStatus(
+    @Req() req: any,
+    @Body('applicationId') applicationId: string,
+    @Body('status') status: string,
+  ) {
+    const businessId = req.user.userId;
+    return this.appsService.updateStatusByBusiness(businessId, applicationId, status);
   }
 }

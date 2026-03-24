@@ -10,8 +10,25 @@ import { clearAllUserData } from '@/lib/auth-utils';
 
 export default function EmployerProfileDropdown({ email }: { email?: string }) {
     const [isOpen, setIsOpen] = useState(false);
+    const [userEmail, setUserEmail] = useState(email || '');
     const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
+
+    useEffect(() => {
+        if (!email) {
+            const storedUser = localStorage.getItem('business_user');
+            if (storedUser) {
+                try {
+                    const user = JSON.parse(storedUser);
+                    if (user.email) setUserEmail(user.email);
+                } catch (e) {
+                    console.error("Error parsing business_user from localStorage");
+                }
+            }
+        } else {
+            setUserEmail(email);
+        }
+    }, [email]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -33,7 +50,7 @@ export default function EmployerProfileDropdown({ email }: { email?: string }) {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 ${isOpen ? 'bg-pink-100 text-[#ec4899] ring-2 ring-pink-200' : 'bg-slate-50 text-slate-400 hover:bg-pink-50 hover:text-[#ec4899] border border-slate-100 hover:border-pink-100 shadow-sm'}`}
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 ${isOpen ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-200' : 'bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 border border-slate-100 hover:border-blue-100 shadow-sm'}`}
             >
                 <User size={18} className="transition-transform group-hover:scale-110" />
             </button>
@@ -43,7 +60,7 @@ export default function EmployerProfileDropdown({ email }: { email?: string }) {
                     {/* User Email Header */}
                     <div className="px-6 py-5 border-b border-slate-100">
                         <p className="text-slate-900 font-bold text-sm tracking-tight truncate">
-                            {email || 'qamerhassan6@gmail.com'}
+                            {userEmail || 'Employer Account'}
                         </p>
                     </div>
 
@@ -51,11 +68,11 @@ export default function EmployerProfileDropdown({ email }: { email?: string }) {
                         {/* Billing Section */}
                         <div className="px-6 py-2">
                             <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Billing</h3>
-                            <Link href="/business/settings#billing" onClick={() => setIsOpen(false)} className="flex items-center gap-3 py-2 text-slate-700 hover:text-pink-600 transition-colors group">
-                                <FileText size={18} className="text-slate-400 group-hover:text-pink-600" />
+                            <Link href="/business/settings#billing" onClick={() => setIsOpen(false)} className="flex items-center gap-3 py-2 text-slate-700 hover:text-blue-600 transition-colors group">
+                                <FileText size={18} className="text-slate-400 group-hover:text-blue-600" />
                                 <span className="font-bold text-sm">Invoices</span>
                             </Link>
-                            <Link href="/business/settings#billing" onClick={() => setIsOpen(false)} className="flex items-center gap-3 py-2 text-slate-700 hover:text-pink-600 transition-colors pl-[30px]">
+                            <Link href="/business/settings#billing" onClick={() => setIsOpen(false)} className="flex items-center gap-3 py-2 text-slate-700 hover:text-blue-600 transition-colors pl-[30px]">
                                 <span className="font-bold text-sm">Payment method</span>
                             </Link>
                         </div>
@@ -65,8 +82,8 @@ export default function EmployerProfileDropdown({ email }: { email?: string }) {
                         {/* Team Section */}
                         <div className="px-6 py-2">
                             <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Team</h3>
-                            <Link href="/business/settings#team" onClick={() => setIsOpen(false)} className="flex items-center gap-3 py-2 text-slate-700 hover:text-pink-600 transition-colors group">
-                                <Users size={18} className="text-slate-400 group-hover:text-pink-600" />
+                            <Link href="/business/settings#team" onClick={() => setIsOpen(false)} className="flex items-center gap-3 py-2 text-slate-700 hover:text-blue-600 transition-colors group">
+                                <Users size={18} className="text-slate-400 group-hover:text-blue-600" />
                                 <span className="font-bold text-sm">Manage access</span>
                             </Link>
                         </div>
@@ -76,8 +93,8 @@ export default function EmployerProfileDropdown({ email }: { email?: string }) {
                         {/* Account Section */}
                         <div className="px-6 py-2">
                             <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Account</h3>
-                            <Link href="/business/settings#profile" onClick={() => setIsOpen(false)} className="flex items-center gap-3 py-2 text-slate-700 hover:text-pink-600 transition-colors group">
-                                <Settings size={18} className="text-slate-400 group-hover:text-pink-600" />
+                            <Link href="/business/settings#profile" onClick={() => setIsOpen(false)} className="flex items-center gap-3 py-2 text-slate-700 hover:text-blue-600 transition-colors group">
+                                <Settings size={18} className="text-slate-400 group-hover:text-blue-600" />
                                 <span className="font-bold text-sm">My settings</span>
                             </Link>
                         </div>
@@ -87,7 +104,7 @@ export default function EmployerProfileDropdown({ email }: { email?: string }) {
                         {/* Switch Link */}
                         <Link href="/dashboard" className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors group">
                             <span className="font-bold text-slate-700 text-sm">Visit NurseFlex for job seekers</span>
-                            <ExternalLink size={14} className="text-slate-400 group-hover:text-pink-600" />
+                            <ExternalLink size={14} className="text-slate-400 group-hover:text-blue-600" />
                         </Link>
                     </div>
 
