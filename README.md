@@ -2,7 +2,7 @@
 
 # 🏥 NurseFlex
 
-<img src="nursingplatform/public/screenshots/dashboard.png" alt="NurseFlex Admin Dashboard" width="900" style="border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+<img src="nursingplatform/public/screenshots/landing.png" alt="NurseFlex Landing Page" width="900" style="border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
 
 **The Premium Job Platform for Healthcare Professionals**
 
